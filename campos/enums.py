@@ -2,6 +2,8 @@ import os
 import abc
 import contextlib
 
+from qtpy.QtWidgets import QDialogButtonBox
+
 from utils import Enum
 
 __author__ = 'Juan Manuel Bermúdez Cabrera'
@@ -16,19 +18,20 @@ class BaseEnum(Enum):
 
         * If `arg` is a member of this enum returns `arg`.
 
-        * If `arg` is an `str` then a case-insensitive search is done among this enum members
-          looking for one whose name matches `arg`.
+        * If `arg` is an `str` then a case-insensitive search is done among this
+          enum members looking for one whose name matches `arg`.
 
           If no member is found with name equal to `arg` then:
 
-          - If ``arg.upper() == 'CURRENT'`` and the enum is subclass of :class:`HasCurrent` the
-            :func:`HasCurrent.get_current` method is called.
+          - If ``arg.upper() == 'CURRENT'`` and the enum is subclass of
+            :class:`HasCurrent` the :func:`HasCurrent.get_current` method is
+            called.
 
-          - Else, if ``arg.upper() == 'DEFAULT'`` and the enum is subclass of :class:`HasDefault`
-            the :func:`HasDefault.default` method is called.
+          - Else, if ``arg.upper() == 'DEFAULT'`` and the enum is subclass of
+            :class:`HasDefault` the :func:`HasDefault.default` method is called.
 
-        :param arg: a member object or a string representing its name, 'current' or 'default' if
-                    supported.
+        :param arg: a member object or a string representing its name, 'current'
+                    or 'default' if supported.
         :type arg: an enum member or :class:`str`.
 
         :return: an enum member.
@@ -55,8 +58,8 @@ class BaseEnum(Enum):
 
 
 class HasDefault:
-    """Behavior to implement in order to give a :class:`BaseEnum` the ability to provide a
-    default value.
+    """Behavior to implement in order to give a :class:`BaseEnum` the ability to
+     provide a default value.
 
     .. seealso:: :class:`HasCurrent`
     """
@@ -77,8 +80,8 @@ class HasDefault:
 
 
 class HasCurrent:
-    """Behavior to implement in order to give a :class:`BaseEnum` the ability to globally set and
-    obtain a current value.
+    """Behavior to implement in order to give a :class:`BaseEnum` the ability to
+     globally set and obtain a current value.
 
     .. seealso:: :class:`HasDefault`
     """
@@ -87,9 +90,10 @@ class HasCurrent:
     def get_current(cls):
         """Obtains the current value of a :class:`BaseEnum` subclass.
 
-        If a current value has not been established using :func:`set_current` and the enum is
-        an :class:`HasDefault` subclass then the :func:`HasDefault.default` method is called,
-        otherwise an AttributeError is raised.
+        If a current value has not been established using :func:`set_current`
+        and the enum is an :class:`HasDefault` subclass then the
+        :func:`HasDefault.default` method is called, otherwise an AttributeError
+        is raised.
 
         :Examples:
 
@@ -98,8 +102,9 @@ class HasCurrent:
 
         :return: the current enum member or the default value if supported.
 
-        :raises AttributeError: if no value has been established using :func:`set_current` and
-                                the enum is not a :class:`HasDefault` subclass.
+        :raises AttributeError: if no value has been established using
+                                :func:`set_current` and the enum is not a
+                                :class:`HasDefault` subclass.
         """
         try:
             return getattr(cls, '_CURRENT')
@@ -113,13 +118,13 @@ class HasCurrent:
     def set_current(cls, value):
         """Establish the current value of a :class:`BaseEnum` subclass.
 
-        `value` is processed using :func:`BaseEnum.get_member`, therefore all its shortcuts can be
-        used here.
+        `value` is processed using :func:`BaseEnum.get_member`, therefore all
+        its shortcuts can be used here.
 
         :Examples:
 
-        * ViewsPackage.set_current('pyqt4')
-        * ViewsPackage.get_member(ViewsPackage.PyQt4)
+        * QtAPI.set_current('pyqt4')
+        * QtAPI.get_member(QtAPI.PyQt4)
 
         :param value: enum member to set as the current one.
         :type value: all values supported by :func:`BaseEnum.get_member`
@@ -132,7 +137,8 @@ class HasCurrent:
 class QtAPI(HasCurrent, BaseEnum):
     """Available Qt bindings.
 
-    .. note:: This enum can be empty if none of the supported Qt bindings can be imported.
+    .. note:: This enum can be empty if none of the supported Qt bindings can
+              be imported.
     """
     with contextlib.suppress(ImportError):
         import PyQt4
@@ -165,9 +171,11 @@ class Labelling(HasDefault, HasCurrent, BaseEnum):
 
 
 class Validation(HasDefault, HasCurrent, BaseEnum):
-    """Available validation mechanisms to be used in fields, the default is 'instant'"""
+    """Available validation mechanisms to be used in fields, the default is
+    'instant'
+    """
 
-    #: Validation is left to the user, :func:`.composite.Field.validate` must be called.
+    #: Validation is left to the user.
     MANUAL = 0
 
     #: Validation occurs any time the value of a field changes.
@@ -176,3 +184,25 @@ class Validation(HasDefault, HasCurrent, BaseEnum):
     @classmethod
     def default(cls):
         return cls.INSTANT
+
+
+class ButtonType(BaseEnum):
+
+    OK = QDialogButtonBox.Ok
+    OPEN = QDialogButtonBox.Open
+    SAVE = QDialogButtonBox.Save
+    CANCEL = QDialogButtonBox.Cancel
+    CLOSE = QDialogButtonBox.Close
+    DISCARD = QDialogButtonBox.Discard
+    APPLY = QDialogButtonBox.Apply
+    RESET = QDialogButtonBox.Reset
+    RESTORE_DEFAULTS = QDialogButtonBox.RestoreDefaults
+    HELP = QDialogButtonBox.Help
+    SAVE_ALL = QDialogButtonBox.SaveAll
+    YES = QDialogButtonBox.Yes
+    YES_TO_ALL = QDialogButtonBox.YesToAll
+    NO = QDialogButtonBox.No
+    NO_TO_ALL = QDialogButtonBox.NoToAll
+    ABORT = QDialogButtonBox.Abort
+    RETRY = QDialogButtonBox.Retry
+    IGNORE = QDialogButtonBox.Ignore

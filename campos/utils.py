@@ -50,8 +50,8 @@ except ImportError:  # enum module not present replace with custom metaclass and
         pass
 
 
-def first_validator_of_type(validators, v_type):
-    for v in validators:
-        if isinstance(v, v_type):
-            return v
+def first_of_type(elements, type):
+    for e in elements:
+        if isinstance(e, type):
+            return e
     return None

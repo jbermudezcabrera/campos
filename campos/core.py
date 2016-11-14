@@ -1,21 +1,21 @@
-import abc
 import re
 
 from qtpy import QtWidgets as Qt
 
 from enums import Validation, Labelling
+from utils import callable
 
 __author__ = 'Juan Manuel Bermúdez Cabrera'
 
 
-class Field(Qt.QWidget, metaclass=abc.ABCMeta):
+class Field(Qt.QWidget):
     _FIELDS_COUNT = 0
     _ID_PATTERN = r'[a-z_]+[a-z0-9_]*'
 
-    def __init__(self, name='', text='', description='', default=None,
+    def __init__(self, *args, name='', text='', description='', default=None,
                  on_change=None, labelling='current', validation='current',
-                 validators=()):
-        super(Field, self).__init__()
+                 validators=(), message=None):
+        super(Field, self).__init__(*args)
         Field._FIELDS_COUNT += 1
         self.default = default
 
@@ -36,14 +36,13 @@ class Field(Qt.QWidget, metaclass=abc.ABCMeta):
 
         self.errors = []
         self.validators = []
+        self.message = message
 
         for v in validators:
             if callable(v):
                 self.validators.append(v)
             else:
                 raise ValueError('Expecting callable, got {}'.format(type(v)))
-
-        self._get_change_signal().connect(self._validation_cb)
 
     @property
     def name(self):
@@ -67,32 +66,28 @@ class Field(Qt.QWidget, metaclass=abc.ABCMeta):
             raise ValueError(msg)
 
     @property
-    @abc.abstractmethod
     def text(self):
         """Text to show in the field's label.
 
         :type: :class:`str`
         """
-        pass
+        raise NotImplementedError
 
     @text.setter
-    @abc.abstractmethod
     def text(self, value):
-        pass
+        raise NotImplementedError
 
     @property
-    @abc.abstractmethod
     def description(self):
         """Useful short information about the field, usually shown as a tooltip.
 
         :type: :class:`str`
         """
-        pass
+        raise NotImplementedError
 
     @description.setter
-    @abc.abstractmethod
     def description(self, value):
-        pass
+        raise NotImplementedError
 
     @property
     def validation(self):
@@ -106,21 +101,23 @@ class Field(Qt.QWidget, metaclass=abc.ABCMeta):
     @validation.setter
     def validation(self, value):
         self._validation = Validation.get_member(value)
+        if self.validation == Validation.INSTANT:
+            self._get_change_signal().connect(self._validation_cb)
+        else:
+            self._get_change_signal().disconnect(self._validation_cb)
 
     @property
-    @abc.abstractmethod
     def labelling(self):
         """Field's label position, see :class:`~campos.enums.Labelling` for
         possible values.
 
         :type: :class:`str` or :class:`~campos.enums.Labelling`
         """
-        pass
+        raise NotImplementedError
 
     @labelling.setter
-    @abc.abstractmethod
     def labelling(self, value):
-        pass
+        raise NotImplementedError
 
     @property
     def on_change(self):
@@ -150,15 +147,13 @@ class Field(Qt.QWidget, metaclass=abc.ABCMeta):
             raise ValueError(msg)
 
     @property
-    @abc.abstractmethod
     def value(self):
         """Field's current value"""
-        pass
+        raise NotImplementedError
 
     @value.setter
-    @abc.abstractmethod
     def value(self, value):
-        pass
+        raise NotImplementedError
 
     def validate(self):
         """Validates field's current value using current validators
@@ -192,7 +187,7 @@ class Field(Qt.QWidget, metaclass=abc.ABCMeta):
             self.validate()
 
 
-class BaseField(Field, metaclass=abc.ABCMeta):
+class BaseField(Field):
     """More complete abstract base class for fields, implementing a common use
     case scenario.
 
@@ -201,26 +196,21 @@ class BaseField(Field, metaclass=abc.ABCMeta):
     errors.
 
     In order to create new fields following this structure is only necessary to
-    implement :attr:`value` property getter and setter and define two
-    attributes:
-
-    1. MAIN_COMPONENT: points to a QWidget or QLayout holding the main part of
-    the field(without text and error labels).
-
-    2. MAIN_WIDGET: points to the main QWidget in the field, where the value is
-    introduced.
+    implement :attr:`value` property getter and setter and define a
+    MAIN_COMPONENT attribute pointing to a QWidget or QLayout holding the main
+    part of the field(without text and error labels).
 
     :class:`Field` should be used as base class to create fields without
     this structure.
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
         self.label = Qt.QLabel('')
         self.error_label = Qt.QLabel('')
         self.error_label.setStyleSheet('color: rgb(255, 0, 0);')
         self.layout = None
 
-        super(BaseField, self).__init__(**kwargs)
+        super(BaseField, self).__init__(*args, **kwargs)
 
     @property
     def text(self):
@@ -232,11 +222,28 @@ class BaseField(Field, metaclass=abc.ABCMeta):
 
     @property
     def description(self):
-        return self._get_main_widget().toolTip()
+        main = self._get_main_component()
+        if isinstance(main, Qt.QWidget):
+            return main.toolTip()
+
+        # it's a layout
+        for i in range(main.count()):
+            item = main.itemAt(i)
+            if isinstance(item, Qt.QWidget) and item.toolTip():
+                return item.toolTip()
+        return ''
 
     @description.setter
     def description(self, value):
-        self._get_main_widget().setToolTip(value)
+        main = self._get_main_component()
+        if isinstance(main, Qt.QWidget):
+            main.setToolTip(value)
+        else:
+            # it's a layout
+            for i in range(main.count()):
+                item = main.itemAt(i)
+                if isinstance(item, Qt.QWidget) and not item.toolTip():
+                    item.setToolTip(value)
 
     @property
     def labelling(self):
@@ -260,43 +267,46 @@ class BaseField(Field, metaclass=abc.ABCMeta):
             layout.setSpacing(5)
             layout.setContentsMargins(0, 0, 0, 0)
 
-            # remove current layout's children and add them to new layout
-            current = self.layout()
-            for i in range(current.count()):
-                item = current.itemAt(i)
-                if isinstance(item, Qt.QLayout):
-                    current.removeItem(item)
-                    layout.addLayout(item)
+            # if it was a previous layout then remove it's children and add them
+            # to the new layout
+            if self.labelling:
+                # set new layout and re-parent existing one
+                current = self.layout()
+                self.setLayout(layout)
+
+                for i in range(current.count()):
+                    item = current.itemAt(i)
+                    if isinstance(item, Qt.QLayout):
+                        current.removeItem(item)
+                        layout.addLayout(item)
+                    else:
+                        current.removeWidget(item)
+                        layout.addWidget(item)
+            else:
+                # setting layout and adding children for first time
+                layout.addWidget(self.label)
+
+                main = self._get_main_component()
+                if isinstance(main, Qt.QLayout):
+                    layout.addLayout(main)
                 else:
-                    current.removeWidget(item)
-                    layout.addWidget(item)
+                    layout.addWidget(main)
+
+                layout.addWidget(self.error_label)
+                self.setLayout(layout)
 
             # stretch main component
             layout.setStretch(1, 1)
-
-            # re-parent current layout
-            Qt.QWidget().setLayout(current)
-
-            # set new layout
-            self.setLayout(layout)
 
     def validate(self):
         valid = super(BaseField, self).validate()
 
         if self.error_label is not None:
-            self.error_label.setText('' if valid else str(self.errors.pop()))
+            msg = ''
+            if not valid:
+                msg = self.message if self.message else str(self.errors.pop())
+            self.error_label.setText(msg)
         return valid
-
-    def _get_main_widget(self):
-        msg = "'MAIN_WIDGET' attribute must be defined and reference a " \
-              "valid QtWidget"
-        try:
-            if not isinstance(self.MAIN_WIDGET, Qt.QWidget):
-                raise ValueError(msg)
-        except AttributeError:
-            raise AttributeError(msg)
-        else:
-            return self.MAIN_WIDGET
 
     def _get_main_component(self):
         msg = "'MAIN_COMPONENT' attribute must be defined and reference a " \
@@ -307,4 +317,4 @@ class BaseField(Field, metaclass=abc.ABCMeta):
         except AttributeError:
             raise AttributeError(msg)
         else:
-            return self.MAIN_WIDGET
+            return self.MAIN_COMPONENT
