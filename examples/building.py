@@ -1,6 +1,10 @@
 """This example demonstrates the basics on building your forms"""
 
+import os
 import sys
+
+# set gui api to use
+os.environ['QT_API'] = 'pyside'
 
 from qtpy.QtWidgets import QMessageBox, QApplication
 
@@ -11,16 +15,15 @@ __author__ = 'Juan Manuel Bermúdez Cabrera'
 
 
 def confirm_cancel():
-    answer = QMessageBox.question(None, 'Confirm', 'Are you sure?')
+    options = QMessageBox.Yes | QMessageBox.No
+    answer = QMessageBox.question(None, 'Confirm', 'Are you sure?', options)
+
     if answer == QMessageBox.Yes:
         form.close()
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-
-    # set gui api to use
-    campos.API = 'pyqt4'
 
     # you can explore other validations in validators module
     id = campos.StringField(name='id', text='ID', max_length=11,

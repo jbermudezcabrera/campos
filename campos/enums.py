@@ -53,7 +53,8 @@ class BaseEnum(Enum):
                 return cls.default()
 
         message = "Unknown member '{}' of {}, valid values are: {}"
-        joined = ','.join("'{}'".format(str(m).lower()) for m in cls.__members__)
+        joined = ','.join(
+            "'{}'".format(str(m).lower()) for m in cls.__members__)
         raise ValueError(message.format(arg, cls.__name__, joined))
 
 
@@ -134,28 +135,6 @@ class HasCurrent:
         cls._CURRENT = cls.get_member(value)
 
 
-class QtAPI(HasCurrent, BaseEnum):
-    """Available Qt bindings.
-
-    .. note:: This enum can be empty if none of the supported Qt bindings can
-              be imported.
-    """
-    with contextlib.suppress(ImportError):
-        import PyQt4
-
-    with contextlib.suppress(ImportError):
-        import PyQt5
-
-    with contextlib.suppress(ImportError):
-        import PySide
-
-    @classmethod
-    def set_current(cls, value):
-        super(QtAPI, cls).set_current(value)
-
-        os.environ['QT_API'] = QtAPI.get_current().name.lower()
-
-
 class Labelling(HasDefault, HasCurrent, BaseEnum):
     """Possible positions to display a label in fields, default is 'left'"""
 
@@ -187,7 +166,6 @@ class Validation(HasDefault, HasCurrent, BaseEnum):
 
 
 class ButtonType(BaseEnum):
-
     OK = QDialogButtonBox.Ok
     OPEN = QDialogButtonBox.Open
     SAVE = QDialogButtonBox.Save
