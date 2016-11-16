@@ -263,7 +263,7 @@ def from_int(name, text, value, **kwargs):
 
 
 def from_float(name, text, value, **kwargs):
-    """Creates a ``DecimalField`` from a float value. A bit of logic
+    """Creates a ``FloatField`` from a float value. A bit of logic
     is applied using provided arguments to determine some field's settings.
 
     :param name: name for the field
@@ -277,8 +277,8 @@ def from_float(name, text, value, **kwargs):
 
     :param kwargs: keyword arguments to pass to field constructor
 
-    :return: a new ``DecimalField`` with the given name and text
-    :rtype: :class:`~campos.composite.fields.DecimalField`
+    :return: a new ``FloatField`` with the given name and text
+    :rtype: :class:`~campos.composite.fields.FloatField`
     """
     fkwargs = kwargs.copy()
     fkwargs['name'] = name
@@ -299,7 +299,7 @@ def from_float(name, text, value, **kwargs):
             fkwargs['min'] = kwargs.get('min', value - 100)
         if val.max is None or value >= val.max:
             fkwargs['max'] = kwargs.get('max', value + 100)
-    return fields.DecimalField(**fkwargs)
+    return fields.FloatField(**fkwargs)
 
 
 def from_str(name, text, value, istext=False, **kwargs):

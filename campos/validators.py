@@ -1,6 +1,6 @@
+import re
 import abc
 import math
-import re
 from datetime import date, time, datetime
 
 __author__ = 'Juan Manuel Bermúdez Cabrera'
@@ -27,12 +27,14 @@ class Validator(metaclass=abc.ABCMeta):
 class DataRequired(Validator):
     """Checks if a field is not empty.
 
-    Only basic validations are done here, the following values are considered invalid:
+    Only basic validations are done here, the following values are considered
+    invalid:
 
     * None
     * Empty strings or containing only blank spaces.
     * Numbers when :func:`math.isfinite` is `False`.
     * Empty collections.
+    * Time objects if its evaluation in a boolean context is False
 
     :param message: message to show when no data is found
     :type message: :class:`str`
@@ -53,6 +55,8 @@ class DataRequired(Validator):
             valid = math.isfinite(value)
         elif hasattr(value, '__len__'):
             valid = len(value) > 0
+        elif isinstance(value, time) and not value:
+            valid = False
 
         if not valid:
             raise ValueError(self.message)
@@ -80,10 +84,10 @@ class NumberRange(Validator):
         value = field.value
 
         if not self.min <= value <= self.max:
+            message = self.message
             if self.message is None:
-                message = 'Value must be between {} and {}'.format(self.min, self.max)
-            else:
-                message = self.message
+                message = 'Value must be between {} and {}'
+                message = message.format(self.min, self.max)
             raise ValueError(message)
 
 
@@ -109,11 +113,10 @@ class StringLength(Validator):
         value = field.value
 
         if not self.min <= len(value) <= self.max:
+            message = self.message
             if self.message is None:
                 message = 'Value must be between {} and {} characters long'
                 message = message.format(self.min, self.max)
-            else:
-                message = self.message
             raise ValueError(message)
 
 
@@ -126,7 +129,8 @@ class RegExp(Validator):
     :param flags: flags to pass to :func:`re.compile` if it's necessary
     :type flags: :class:`int`
 
-    :param message: message to show if value doesn't match the regular expression
+    :param message: message to show if value doesn't fully match the regular
+                    expression
     :type message: :class:`str`
     """
 
@@ -135,7 +139,7 @@ class RegExp(Validator):
         self.compiled = re.compile(exp, flags) if isinstance(exp, str) else exp
 
     def __call__(self, field):
-        if not self.compiled.match(field.value):
+        if not self.compiled.fullmatch(field.value):
             raise ValueError(self.message)
 
 
@@ -161,10 +165,10 @@ class DateRange(Validator):
         value = field.value
 
         if not self.min <= value <= self.max:
+            message = self.message
             if self.message is None:
-                message = 'Date must be between {} and {}'.format(self.min, self.max)
-            else:
-                message = self.message
+                message = 'Date must be between {} and {}'
+                message = message.format(self.min, self.max)
             raise ValueError(message)
 
 
@@ -190,20 +194,22 @@ class TimeRange(Validator):
         value = field.value
 
         if not self.min <= value <= self.max:
+            message = self.message
             if self.message is None:
-                message = 'Time must be between {} and {}'.format(self.min, self.max)
-            else:
-                message = self.message
+                message = 'Time must be between {} and {}'
+                message = message.format(self.min, self.max)
             raise ValueError(message)
 
 
 class DatetimeRange(Validator):
     """Range validation for :class:`datetime.datetime` objects.
 
-    :param min: minimum valid datetime, defaults to :attr:`datetime.datetime.min`
+    :param min: minimum valid datetime, defaults to
+                :attr:`datetime.datetime.min`
     :type min: :class:`datetime.datetime`
 
-    :param max: maximum valid datetime, defaults to :attr:`datetime.datetime.max`
+    :param max: maximum valid datetime, defaults to
+                :attr:`datetime.datetime.max`
     :type min: :class:`datetime.datetime`
 
     :param message: message to show if ``not min <= value <= max``
@@ -219,8 +225,8 @@ class DatetimeRange(Validator):
         value = field.value
 
         if not self.min <= value <= self.max:
+            message = self.message
             if self.message is None:
-                message = 'Date and time must be between {} and {}'.format(self.min, self.max)
-            else:
-                message = self.message
+                message = 'Date and time must be between {} and {}'
+                message = message.format(self.min, self.max)
             raise ValueError(message)

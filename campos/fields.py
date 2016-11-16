@@ -92,7 +92,7 @@ class IntField(BaseField):
         self.MAIN_COMPONENT.setMaximum(value)
 
 
-class DecimalField(IntField):
+class FloatField(IntField):
     """Field to introduce :class:`float` values
 
     :param precision: decimal places, defaults to 2
@@ -104,7 +104,7 @@ class DecimalField(IntField):
         self.CHANGE_SIGNAL = self.MAIN_COMPONENT.valueChanged
         kwargs.setdefault('default', 0)
 
-        super(DecimalField, self).__init__(*args, **kwargs)
+        super(FloatField, self).__init__(*args, **kwargs)
         self.precision = precision
 
     @property
