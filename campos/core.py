@@ -19,6 +19,9 @@ class Field(Qt.QWidget):
     validation, see :class:`~campos.enums.Validation` enum for possible
     validation mechanisms.
 
+    Subclasses must define a CHANGE_SIGNAL attribute referencing a valid Qt
+    signal which is fired whenever the field's value changes.
+
     :param name: text to identify the field inside forms or other contexts,
                  must be a valid variable name, it defaults to
                  field{consecutive_number}
@@ -275,8 +278,8 @@ class BaseField(Field):
 
     In order to create new fields following this structure is only necessary to
     implement :attr:`value` property getter and setter and define a
-    MAIN_COMPONENT attribute pointing to a QWidget or QLayout holding the main
-    part of the field(without text and error labels).
+    MAIN_COMPONENT attribute which is a valid QWidget or QLayout holding the
+    main part of the field(without text and error labels).
 
     :class:`Field` should be used as base class to create fields without
     this structure.
