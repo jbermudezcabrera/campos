@@ -2,13 +2,15 @@ __author__ = 'Juan Manuel Bermúdez Cabrera'
 
 try:
     from builtins import callable
-except ImportError:  # callable builtin not present, replace with __call__ attribute check
+except ImportError:
+    # callable builtin not present, replace with __call__ attribute check
     def callable(obj):
         return hasattr(obj, '__call__')
 
 try:
     from enum import Enum
-except ImportError:  # enum module not present replace with custom metaclass and base class
+except ImportError:
+    # enum module not present replace with custom metaclass and base class
     from inspect import isroutine
 
 
@@ -18,13 +20,18 @@ except ImportError:  # enum module not present replace with custom metaclass and
 
     class EnumMeta(type):
         def __new__(cls, name, bases, namespace, **kwargs):
-            namespace['__str__'] = _member_str  # injecting custom __str__
-            EnumClass = type.__new__(cls, name, bases, namespace)  # new enumeration class
+            # injecting custom __str__
+            namespace['__str__'] = _member_str
+
+            # new enumeration class
+            EnumClass = type.__new__(cls, name, bases, namespace)
 
             members = []
             for var, value in namespace.items():
-                if not var.startswith('_') and not isroutine(value):  # member's name should not start with _
-                    # enumeration members are objects of the enumeration class with extra name and value attributes
+                # member's name should not start with _
+                if not var.startswith('_') and not isroutine(value):
+                    # enumeration members are objects of the enumeration class
+                    # with name and value attributes
                     member = EnumClass()
                     member.name = var
                     member.value = value
