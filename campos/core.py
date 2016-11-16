@@ -10,6 +10,58 @@ __author__ = 'Juan Manuel Bermúdez Cabrera'
 
 
 class Field(Qt.QWidget):
+    """Base class for input fields, isn't generally used directly.
+
+    A field is usually composed of a label and an input component. The field's
+    label position can be changed individually by modifying `labelling` property
+    or globally by calling :func:`~campos.enums.HasCurrent.set_current` on
+    :class:`~campos.enums.Labelling` enum. It goes the same way with field's
+    validation, see :class:`~campos.enums.Validation` enum for possible
+    validation mechanisms.
+
+    :param name: text to identify the field inside forms or other contexts,
+                 must be a valid variable name, it defaults to
+                 field{consecutive_number}
+    :type name: :class:`str`
+
+    :param text: text to show in the field's label, it defaults to ``name``
+    :type text: :class:`str`
+
+    :param description: useful short information about the field, usually shown
+                        as a tooltip
+    :type description: :class:`str`
+
+    :param default: default value when the field is shown by first time
+
+    :param on_change: handler to call when field's value changes, this is a
+                      shortcut and it only supports one handler at a time,
+                      if you want to connect multiple handlers you should use
+                      ``field.CHANGE_SIGNAL.connect(handler)`` for each handler
+    :type on_change: callable
+
+    :param labelling: field's label position, see
+                      :class:`~campos.enums.Labelling` for possible values,
+                      defaults to 'current'
+    :type labelling: :class:`str` or :class:`~campos.enums.Labelling`
+
+    :param validation: field's validation mechanism, see
+                       :class:`~campos.enums.Validation` for possible values,
+                       defaults to 'current'
+    :type validation: :class:`str` or :class:`~campos.enums.Validation`
+
+    :param validators: validators used to process this field's value when
+                       validation is invoked
+    :type validators: iterable of :class:`~campos.validators.Validator`
+
+    :param required: marks this field as required or not, this a shortcut for
+                     ``field.validators.append(DataRequired())``
+    :type required: :class:`bool`
+
+    :param message: text to show if field is invalid, if set, this message has
+                    priority over validators' messages
+    :type message: :class:`str`
+    """
+
     _FIELDS_COUNT = 0
     _ID_PATTERN = r'[a-z_]+[a-z0-9_]*'
 
@@ -38,13 +90,14 @@ class Field(Qt.QWidget):
         self.errors = []
         self.validators = []
         self.message = message
-        self.required = required
 
         for v in validators:
             if callable(v):
                 self.validators.append(v)
             else:
-                raise ValueError('Expecting callable, got {}'.format(type(v)))
+                raise ValueError('Expecting callable, got {}'.format(v))
+
+        self.required = required
 
     @property
     def name(self):
@@ -64,7 +117,7 @@ class Field(Qt.QWidget):
         elif re.fullmatch(self._ID_PATTERN, value, re.IGNORECASE):
             self._name = value
         else:
-            msg = "Expecting valid variable name, got '{}'".format(value)
+            msg = 'Expecting valid variable name, got {}'.format(value)
             raise ValueError(msg)
 
     @property
@@ -93,6 +146,11 @@ class Field(Qt.QWidget):
 
     @property
     def required(self):
+        """Marks this field as required or not, this a shortcut for
+        ``field.validators.append(DataRequired())``
+
+        :type: :class:`bool`
+        """
         return first_of_type(self.validators, DataRequired) is not None
 
     @required.setter
@@ -137,9 +195,10 @@ class Field(Qt.QWidget):
 
     @property
     def on_change(self):
-        """Handler to call when field's value changes, unlike ``Qt's connect``
-        it only supports one handler, if you want to connect multiple handlers
-        you should use ``connect``.
+        """Handler to call when field's value changes, this is a shortcut and
+        it only supports one handler at a time, if you want to connect multiple
+        handlers you should use ``field.CHANGE_SIGNAL.connect(handler)``
+        for each handler.
 
         To disconnect a connected handler just set ``on_change = None``
 
@@ -172,7 +231,10 @@ class Field(Qt.QWidget):
         raise NotImplementedError
 
     def validate(self):
-        """Validates field's current value using current validators
+        """Validates field's current value using current validators. After
+        validation all errors are stored in ``errors`` list in the form of
+        :class:`ValueError` objects, if the field is valid ``errors`` will be
+        empty.
 
         :return: if the field is valid or not
         :rtype: :class:`bool`
