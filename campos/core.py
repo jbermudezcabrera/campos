@@ -73,7 +73,9 @@ class Field(Qt.QWidget):
                  validators=(), required=False, message=None):
         super(Field, self).__init__(*args)
         Field._FIELDS_COUNT += 1
+
         self.default = default
+        self.value = self.default
 
         self._name = None
         self.name = name

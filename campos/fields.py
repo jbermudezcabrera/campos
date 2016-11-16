@@ -29,8 +29,8 @@ class IntField(BaseField):
     def __init__(self, *args, min=0, max=100, step=1, **kwargs):
         self.MAIN_COMPONENT = Qt.QSpinBox()
         self.CHANGE_SIGNAL = self.MAIN_COMPONENT.valueChanged
-        kwargs.setdefault('default', 0)
 
+        kwargs.setdefault('default', 0)
         super(IntField, self).__init__(*args, **kwargs)
 
         self._range = first_of_type(self.validators, NumberRange)
@@ -40,10 +40,7 @@ class IntField(BaseField):
         self.validators.append(self._range)
         self.min = self._range.min
         self.max = self._range.max
-
         self.step = step
-        self.default = self.min if self.default is None else self.default
-        self.value = self.default
 
     @property
     def value(self):
@@ -102,8 +99,8 @@ class FloatField(IntField):
     def __init__(self, *args, precision=2, **kwargs):
         self.MAIN_COMPONENT = Qt.QDoubleSpinBox()
         self.CHANGE_SIGNAL = self.MAIN_COMPONENT.valueChanged
-        kwargs.setdefault('default', 0)
 
+        kwargs.setdefault('default', 0)
         super(FloatField, self).__init__(*args, **kwargs)
         self.precision = precision
 
@@ -133,8 +130,8 @@ class StringField(BaseField):
     def __init__(self, *args, min_length=0, max_length=100, **kwargs):
         self.MAIN_COMPONENT = Qt.QLineEdit()
         self.CHANGE_SIGNAL = self.MAIN_COMPONENT.textChanged
-        kwargs.setdefault('default', '')
 
+        kwargs.setdefault('default', '')
         super(StringField, self).__init__(*args, **kwargs)
 
         self._length = first_of_type(self.validators, StringLength)
@@ -606,7 +603,9 @@ class SelectField(BaseField):
             value = self._value_getter(ch)
             self.add_choice(text, value)
 
-        kwargs.setdefault('default', self.value)
+        if kwargs.get('default') is None:
+            default = self.choices[0] if self.choices else ('', '')
+            kwargs['default'] = default[0]
         super(SelectField, self).__init__(*args, **kwargs)
 
     @property
@@ -619,14 +618,15 @@ class SelectField(BaseField):
         :return: a :class:`tuple` like ``(option's text, option's value)``
         :rtype: :class:`tuple`
         """
-        index = self.MAIN_COMPONENT.currentIndex()
-        return self.MAIN_COMPONENT.currentText(), self.MAIN_COMPONENT.itemData(index)
+        component = self.MAIN_COMPONENT
+        index = component.currentIndex()
+        return component.currentText(), component.itemData(index)
 
     @value.setter
     def value(self, new):
         index = self.MAIN_COMPONENT.findText(new)
 
-        if index < 0:
+        if index < 0 and self.choices:
             raise ValueError('No choice with text {}'.format(new))
         self.MAIN_COMPONENT.setCurrentIndex(index)
 
@@ -696,7 +696,7 @@ class SelectField(BaseField):
 class FileField(BaseField):
     """Field to input file(s).
 
-    File paths can be entered manually and are separated by a ';'.
+    File paths can be entered manually and are separated by ``PATH_SEP``.
     The value of this field is always a list of paths, independently of
     the value of `multi_select`
 
