@@ -9,7 +9,6 @@ os.environ['QT_API'] = 'pyside'
 from qtpy.QtWidgets import QMessageBox, QApplication
 
 import campos
-from campos.validators import DataRequired
 
 __author__ = 'Juan Manuel Bermúdez Cabrera'
 
@@ -25,10 +24,7 @@ def confirm_cancel():
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    # you can explore other validations in validators module
-    id = campos.StringField(name='id', text='ID', max_length=11,
-                            validators=[DataRequired()])
-
+    id = campos.StringField(name='id', text='ID', max_length=11, required=True)
     name = campos.StringField(name='name', text='Name')
     last = campos.StringField(name='last_name', text='Last name')
 

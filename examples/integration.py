@@ -53,24 +53,23 @@ if __name__ == '__main__':
     new, edition = campos.get_forms(p1, under=True, exclude=['to_exclude', 'curriculum'])
 
     # add some validation to both forms
-    required = validators.DataRequired()
     length = validators.StringLength(min=5, max=50)
 
     # creation form
     field = new.field('name')
-    field.validators.append(required)
+    field.required = True
     field.validators.append(length)
 
     field = new.field('address')
-    field.validators.append(required)
+    field.required = True
 
     # edition form
     field = edition.field('name')
-    field.validators.append(required)
+    field.required = True
     field.validators.append(length)
 
     field = edition.field('address')
-    field.validators.append(required)
+    field.required = True
 
     # add a file field to both forms
     new.add_member(campos.FileField(name='cv', text='Curriculum Vitae', ))

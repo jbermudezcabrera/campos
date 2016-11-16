@@ -3,7 +3,8 @@ import re
 from qtpy import QtWidgets as Qt
 
 from enums import Validation, Labelling
-from utils import callable
+from utils import callable, first_of_type
+from validators import DataRequired
 
 __author__ = 'Juan Manuel Bermúdez Cabrera'
 
@@ -14,7 +15,7 @@ class Field(Qt.QWidget):
 
     def __init__(self, *args, name='', text='', description='', default=None,
                  on_change=None, labelling='current', validation='current',
-                 validators=(), message=None):
+                 validators=(), required=False, message=None):
         super(Field, self).__init__(*args)
         Field._FIELDS_COUNT += 1
         self.default = default
@@ -37,6 +38,7 @@ class Field(Qt.QWidget):
         self.errors = []
         self.validators = []
         self.message = message
+        self.required = required
 
         for v in validators:
             if callable(v):
@@ -88,6 +90,20 @@ class Field(Qt.QWidget):
     @description.setter
     def description(self, value):
         raise NotImplementedError
+
+    @property
+    def required(self):
+        return first_of_type(self.validators, DataRequired) is not None
+
+    @required.setter
+    def required(self, value):
+        validator = first_of_type(self.validators, DataRequired)
+        if value:
+            if validator is None:
+                self.validators.append(DataRequired())
+        else:
+            if validator is not None:
+                self.validators.remove(validator)
 
     @property
     def validation(self):

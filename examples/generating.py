@@ -31,12 +31,12 @@ if __name__ == '__main__':
 
     # add some validation to New Person Form
     name = new.field('fullname')
-    name.validators.append(validators.DataRequired())
+    name.required = True
     name.min_length = 10
     name.max_length = 50
 
     address = new.field('address')
-    address.validators.append(validators.DataRequired())
+    address.required = True
 
     # add a new button with a custom callback
     btn = campos.Button(text='Call lambda', role='default',
