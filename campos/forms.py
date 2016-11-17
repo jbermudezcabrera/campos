@@ -357,6 +357,9 @@ class CreationForm(Form):
         kwargs.setdefault('on_reset', self.reset)
         super(CreationForm, self).__init__(**kwargs)
 
+        # reset fields' data every time form closes
+        self.finished.connect(self.reset)
+
     def reset(self):
         """Restores all fields in the form to their default values"""
         for field in self.fields:
@@ -367,19 +370,21 @@ class CreationForm(Form):
         source = sources.get_fields_source(obj, **source_kw)
 
         form = CreationForm(fields=source.fields.values(), validation='current')
-        form.setWindowTitle('Create {}'.format(type(obj).__name__.capitalize()))
+        title = 'Create {}'.format(type(obj).__name__.capitalize())
+        form.setWindowTitle(title)
+
         return form
 
 
 class EditionForm(Form):
     """Form subclass with useful defaults to edit existing objects.
 
-    This form's options defaults to ``('reset', 'accept', 'cancel')``.
+    This form's options defaults to ``('reset', 'save', 'cancel')``.
     Also, a :func:`reset` method is included and connected by default
     to a reset button to restore all fields in the form to their saved values.
 
     You can edit an existing object using :func:`edit` method which
-    obtains a value for every child from the object, field names must
+    obtains a value for every field from the object, field names must
     be equal to attributes names in the object in order to obtain their
     current value::
 
@@ -404,40 +409,37 @@ class EditionForm(Form):
     def __init__(self, **kwargs):
         kwargs.setdefault('options', ('reset', 'save', 'cancel'))
         kwargs.setdefault('on_reset', self.reset)
-        kwargs.setdefault('title', 'Edit')
         super(EditionForm, self).__init__(**kwargs)
 
         self._real_defaults = {}
 
+        # reset fields to their real defaults every time form closes
+        self.finished.connect(self._restore_real_defaults)
+
     def reset(self):
-        """Restores all fields in the form to their saved values if :func:`edit` method has been
-        called, otherwise restores to default values
+        """Restores all fields in the form to their saved values if :func:`edit`
+        method has been called, otherwise restores to default values
         """
         for field in self.fields:
             field.value = field.default
 
     @staticmethod
     def from_source(obj, **source_kw):
-        title = 'Edit {}'.format(type(obj).__name__.capitalize())
         source = sources.get_fields_source(obj, **source_kw)
 
-        return EditionForm(title=title, members=source.fields.values(),
-                           validation='default')
+        form = EditionForm(fields=source.fields.values(), validation='default')
+        title = 'Edit {}'.format(type(obj).__name__.capitalize())
+        form.setWindowTitle(title)
 
-    def close(self):
-        super().close()
-        for field in self.fields:
-            if field.name in self._real_defaults:
-                field.default = self._real_defaults[field.name]
-        self.reset()
+        return form
 
     def edit(self, obj, disabled=()):
         """Puts the form in edition mode, filling fields with object values.
 
         To prevent some of the fields from been modified when editing use
-        disable keyword and provide the names of the fields. For manually created
-        forms, field names must match object attributes in order to load and store
-        values correctly.
+        disable keyword and provide the names of the fields. For manually
+        created forms, field names must match object attributes in order to
+        load values correctly.
 
         :param obj: object used to fill form fields, only those attributes which
                     match field names will be used.
@@ -452,7 +454,7 @@ class EditionForm(Form):
             # enable to remove settings from previous editions
             field.enable()
 
-            # save field's real default value, the one given in the keyword argument
+            # save field's real default value
             self._real_defaults[field.name] = field.default
 
             # fill default and value properties with object's current values
@@ -465,3 +467,9 @@ class EditionForm(Form):
                 if field.name in disabled:
                     field.disable()
         return self
+
+    def _restore_real_defaults(self):
+        for field in self.fields:
+            if field.name in self._real_defaults:
+                field.default = self._real_defaults[field.name]
+        self.reset()
