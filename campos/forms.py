@@ -124,6 +124,7 @@ class Form(QDialog):
 
         self._validation = None
         self.validation = validation
+        self.valid = True
 
         for f in fields:
             self.add_field(f)
@@ -276,25 +277,22 @@ class Form(QDialog):
         :param msg: text to show when invalid fields are found.
                     Used only when form validation is set to 'manual'
         :type msg: :class:`str`
-
-        :return: True if all fields are valid, False otherwise
-        :rtype: :class:`bool`
         """
-        valid = True
+
+        self.valid = True
         for field in self.fields:
-            valid &= field.validate()
+            self.valid &= field.validate()
 
         # enable all acceptance buttons
         self._enable_acceptance_btns(True)
 
-        if not valid:
+        if not self.valid:
             if self.validation == Validation.MANUAL:
                 text = 'Missing or invalid fields were found, please fix them'
                 text = text if msg is None else msg
                 QMessageBox.warning(self, title, text)
             else:
                 self._enable_acceptance_btns(False)
-        return valid
 
     def group(self, title, fieldnames, layout='vertical'):
         """Groups fields in a common area under a title using chosen layout.

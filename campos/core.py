@@ -10,6 +10,8 @@ __author__ = 'Juan Manuel Bermúdez Cabrera'
 
 
 class Field(Qt.QWidget):
+    # TODO: field subclasses must implement a has_data method to see when data
+    # has been introduced
     """Base class for input fields, isn't generally used directly.
 
     A field is usually composed of a label and an input component. The field's
@@ -184,11 +186,14 @@ class Field(Qt.QWidget):
 
     @validation.setter
     def validation(self, value):
+        previous = self._validation
         self._validation = Validation.get_member(value)
-        if self.validation == Validation.INSTANT:
-            self._get_change_signal().connect(self._validation_cb)
-        else:
-            self._get_change_signal().disconnect(self._validation_cb)
+
+        if self._validation != previous:
+            if self._validation == Validation.INSTANT:
+                self._get_change_signal().connect(self._validation_cb)
+            elif previous is not None:
+                self._get_change_signal().disconnect(self._validation_cb)
 
     @property
     def labelling(self):
