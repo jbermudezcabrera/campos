@@ -281,7 +281,8 @@ class Form(QDialog):
 
         self.valid = True
         for field in self.fields:
-            self.valid &= field.validate()
+            field.validate()
+            self.valid &= field.valid
 
         # enable all acceptance buttons
         self._enable_acceptance_btns(True)

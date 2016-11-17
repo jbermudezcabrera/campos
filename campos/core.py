@@ -95,6 +95,7 @@ class Field(Qt.QWidget):
         self._on_change = None
         self.on_change = on_change
 
+        self.valid = True
         self._validation = None
         self.validation = validation
 
@@ -264,15 +265,14 @@ class Field(Qt.QWidget):
         self.errors.clear()
 
         if not (self.required or self.has_data()):
-            return True
-
-        for validator in self.validators:
-            try:
-                validator(self)
-            except ValueError as e:
-                self.errors.append(e)
-                return False
-        return True
+            self.valid = True
+        else:
+            for validator in self.validators:
+                try:
+                    validator(self)
+                except ValueError as e:
+                    self.errors.append(e)
+            self.valid = len(self.errors) == 0
 
     def _get_change_signal(self):
         msg = "'CHANGE_SIGNAL' attribute must be defined and reference a " \
@@ -402,14 +402,13 @@ class BaseField(Field):
             layout.setStretch(1, 1)
 
     def validate(self):
-        valid = super(BaseField, self).validate()
+        super(BaseField, self).validate()
 
         if self.error_label is not None:
             msg = ''
-            if not valid:
+            if not self.valid:
                 msg = self.message if self.message else str(self.errors.pop())
             self.error_label.setText(msg)
-        return valid
 
     def _get_main_component(self):
         msg = "'MAIN_COMPONENT' attribute must be defined and reference a " \
