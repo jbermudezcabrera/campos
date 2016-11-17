@@ -21,12 +21,16 @@ def confirm_cancel():
         form.close()
 
 
+def save():
+    form.validate()
+
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     print(type(app))
 
     id = campos.StringField(name='id', text='ID', max_length=11, required=True)
-    name = campos.StringField(name='name', text='Name')
+    name = campos.StringField(name='name', text='Name', min_length=2)
     last = campos.StringField(name='last_name', text='Last name')
 
     country = campos.SelectField(name='country', text='Country',

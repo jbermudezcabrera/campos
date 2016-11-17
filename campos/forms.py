@@ -11,19 +11,18 @@ __author__ = 'Juan Manuel Bermúdez Cabrera'
 
 
 class Form(QDialog):
-    # FIXME: review doc
     """Forms are used to arrange fields in order to facilitate
     data input and validation.
 
     You can create a form by calling the ``Form`` constructor
-    and providing member fields and option buttons::
+    and providing fields and options::
 
         fields = [StringField(), SelectField(), FileField(), TextField()]
-        buttons = ('reset', 'accept', 'cancel')
-        form = Form(validation='instant', members=fields, options=buttons)
+        buttons = ('reset', 'ok', 'cancel')
+        form = Form(validation='instant', fields=fields, options=buttons)
 
-    Or also by calling :func:`from_source` which generates the form's fields from a
-    custom source object::
+    Or also by calling :func:`from_source` which generates form's fields
+    introspecting a source object::
 
         class Person:
             def __init__(self, name, last_name, age):
@@ -31,7 +30,7 @@ class Form(QDialog):
                 self.last_name = last_name
                 self.age = age
 
-        p = Person('Billy', 'Smith', 20)
+        p = Person('Sheldon', 'Cooper', 25)
         form = Form.from_source(p)
 
     You can group related fields using :func:`group` method::
@@ -50,48 +49,39 @@ class Form(QDialog):
     called automatically when validation is set to 'instant'.
 
     More specialized forms can be created using :class:`CreationForm` and
-    :class:`EditionForm` subclasses which provide default behaviour
+    :class:`EditionForm` subclasses which provide useful default behaviour
     for object creation and modification.
 
-    :param title: form's title
-    :type title: :class:`str`
-
     :param validation: validation mechanism used by the form, if it's 'instant'
-                       all fields are checked anytime one of them changes. If it's
-                       'manual' you should invoke :func:`validate` method by yourself.
+                       all fields are checked anytime one of them changes and
+                       corresponding buttons are enabled/disabled accordingly.
+                       If it's 'manual' you should invoke :func:`validate`
+                       method by yourself.
     :type validation: :class:`str` or a :class:`~campos.enums.Validation` member
 
-    :param fields: fields to add to this form, can also be a field
-                    container(has 'children' attribute) like a layout or a
-                    :class:`~campos.basic.widgets.Group`
-    :type fields: iterable of :class:`.Field` or field containers
+    :param fields: fields to add to this form
+    :type fields: iterable of :class:`.Field`
 
-    :param options: options to show in the form
-    :type options: iterable of :class:`str`, :class:`~campos.enums.ButtonRole` or
-                   :class:`~campos.basic.widgets.Button`
+    :param options: options to show in the form, these can be ``QPushButton``
+                    instances or :class:`~campos.enums.ButtonType` enum members
+                    (note that you can use strings too).
 
-    :param on_accept: callback to invoke when a button with ``ACCEPT`` role is clicked.
-                      Role must be present in `options`
-    :type on_accept: callable
+                    If you use ``ButtonType`` members(or string) the you can
+                    connect the button with a callback passed as a keyword
+                    argument.
 
-    :param on_cancel: callback to invoke when a button with ``CANCEL`` role is clicked, defaults
-                      to closing the form. Role must be present in `options`
-    :type on_cancel: callable
+                    For instance, if your options are ``['save', 'cancel']``
+                    you can pass two keyword arguments named ``on_save`` and
+                    ``on_cancel`` which will be connected to save and cancel
+                    buttons. Note that the keyword(except the on_ part) matches
+                    the option name(``ButtonType`` member's name).
 
-    :param on_reset: callback to invoke when a button with ``RESET`` role is clicked.
-                     Role must be present in `options`
-    :type on_reset: callable
+                    Buttons with a rejection role fallback to ``form.close()``
+                    if no callback is assigned. To avoid this behavior add
+                    buttons manually using :func:`add_button`
 
-    :param on_save: callback to invoke when a button with ``SAVE`` role is clicked.
-                    Role must be present in `options`
-    :type on_save: callable
-
-    :param on_help: callback to invoke when a button with ``HELP`` role is clicked.
-                    Role must be present in `options`
-    :type on_help: callable
-
-    .. note:: Buttons with acceptance roles automatically invoke validation when clicked.
-              To avoid this behavior add buttons manually using :func:`add_button`
+    :type options: iterable of :class:`str`, :class:`~campos.enums.ButtonType`
+                   or ``QPushButton``
 
     .. seealso:: :class:`CreationForm` and :class:`EditionForm`
     """
@@ -113,42 +103,42 @@ class Form(QDialog):
         layout.addLayout(self.members_layout)
         layout.addWidget(self.button_box)
 
-        self.fields = []
-        for f in fields:
-            self.add_field(f)
+        for opt in options:
+            callback = None
 
-        self._validation = None
-        self.validation = validation
+            if isinstance(opt, (str, ButtonType)):
+                if isinstance(opt, str):
+                    callback_kw = 'on_{}'.format(opt.lower())
+                else:
+                    callback_kw = 'on_{}'.format(opt.name.lower())
 
-        for opt in (opt.lower() for opt in options):
-            standard_btn = ButtonType.get_member(opt)
-            callback_kw = 'on_{}'.format(opt)
-            callback = kwargs.get(callback_kw)
+                callback = kwargs.get(callback_kw)
 
-            button = self.add_button(standard_btn, on_click=callback)
-
-            if self.button_box.buttonRole(button) in self.ACCEPTANCE_ROLES:
-                button.clicked.connect(self.validate)
+            button = self.add_button(opt, on_click=callback)
 
             if not callback:
                 if self.button_box.buttonRole(button) in self.REJECTION_ROLES:
                     button.clicked.connect(self.close)
+
+        self.fields = []
+
+        self._validation = None
+        self.validation = validation
+
+        for f in fields:
+            self.add_field(f)
 
     def _enable_acceptance_btns(self, enabled):
         for btn in self.button_box.buttons():
             if self.button_box.buttonRole(btn) in self.ACCEPTANCE_ROLES:
                 btn.setEnabled(enabled)
 
-    def _field_value_changed_cb(self):
-        if self.validation == Validation.INSTANT:
-            self.validate()
-
     @staticmethod
     def from_source(obj, **source_kw):
-        """Creates a form extracting fields from an object.
+        """Creates a form introspecting fields from an object.
 
         Fields are generated using a suited :class:`~campos.sources.FieldSource`
-        object see ``campos.sources`` package for available options.
+        instance, see ``campos.sources`` package for available options.
 
         :param obj: object to extract fields from.
         :type obj: any
@@ -168,30 +158,50 @@ class Form(QDialog):
         """Adds a field to this form.
 
         :param field: new field
-        :type field: :class:`~core.Field`
+        :type field: :class:`~campos.core.Field`
         """
-
-        # Field validation is now under control of the form
-        field.validation = 'manual'
-        field.CHANGE_SIGNAL.connect(self._field_value_changed_cb)
-
         self.members_layout.addWidget(field)
         self.fields.append(field)
 
+        field.validation = 'manual'
+        if self.validation == Validation.INSTANT:
+            field.CHANGE_SIGNAL.connect(self.validate)
+            # force validation when new fields are added
+            self.validate()
+
     def remove_field(self, name):
-        """Removes a field of this form.
+        """Removes and returns a field from this form using its name.
 
         :param name: name of the field to remove
         :type name: :class:`~core.Field`
+
+        :returns: the removed field
+        :rtype: :class:`~campos.core.Field`
         """
         field = self.field(name)
+        if self.validation == Validation.INSTANT:
+            field.CHANGE_SIGNAL.disconnect(self.validate)
+
         self.members_layout.removeWidget(field)
         self.fields.remove(field)
-        field.deleteLater()
+        return field
 
     def add_button(self, btn, on_click=None):
-        # TODO: add doc
+        """Adds a new button or option to form's button box and connects it
+        with a callback. The new button is always returned.
 
+        :param btn: new option to add, can be a ``QPushButton`` instance or
+                    :class:`~campos.enums.ButtonType` enum members(note that
+                    you can use strings too)
+        :type btn: :class:`str`, :class:`~campos.enums.ButtonType`
+                   or ``QPushButton``
+
+        :param on_click: callback to invoke whenever the button is clicked.
+        :type on_click: callable
+
+        :returns: the new button
+        :rtype: ``QPushButton``
+        """
         if isinstance(btn, (str, ButtonType)):
             standard_btn = ButtonType.get_member(btn).value
             button = self.button_box.addButton(standard_btn)
@@ -210,7 +220,7 @@ class Form(QDialog):
         :type name: :class:`str`
 
         :return: a field
-        :rtype: :class:`~core.Field`
+        :rtype: :class:`~campos.core.Field`
 
         :raise ValueError: if there is no field in the form with the given name
         """
@@ -229,32 +239,45 @@ class Form(QDialog):
     def validation(self):
         """Validation mechanism used by the form.
 
-         If it's 'instant' all fields are checked anytime one of them changes.
+         If it's 'instant' all fields are checked whenever one of them changes.
          If it's 'manual' you should invoke :func:`validate` method by yourself.
 
-        :type: :class:`~enums.Validation`
+        :type: :class:`~campos.enums.Validation`
         """
         return self._validation
 
     @validation.setter
     def validation(self, value):
+        previous = self._validation
         self._validation = Validation.get_member(value)
 
-    def validate(self, msg=None):
+        if self._validation != previous:
+            if self._validation == Validation.INSTANT:
+                for f in self.fields:
+                    f.CHANGE_SIGNAL.connect(self.validate)
+            elif previous is not None:
+                for f in self.fields:
+                    f.CHANGE_SIGNAL.disconnect(self.validate)
+
+    def validate(self, title='Invalid fields', msg=None):
         """Runs validation on every field of this form.
 
         This method is automatically called if form validation
-        is set to 'instant' and all buttons with an acceptance role
+        is set to 'instant', all buttons with an acceptance role
         are disabled when invalid fields are found.
 
         If form validation is set to 'manual' then a message is
         shown when invalid fields are found.
 
+        :param title: title of the message shown when invalid fields are found.
+                      Used only when form validation is set to 'manual'
+        :type title: :class:`str`
+
         :param msg: text to show when invalid fields are found.
                     Used only when form validation is set to 'manual'
         :type msg: :class:`str`
 
-        :return: whether all fields are valid or not
+        :return: True if all fields are valid, False otherwise
         :rtype: :class:`bool`
         """
         valid = True
@@ -268,14 +291,13 @@ class Form(QDialog):
             if self.validation == Validation.MANUAL:
                 text = 'Missing or invalid fields were found, please fix them'
                 text = text if msg is None else msg
-                QMessageBox.warning(self, 'Invalid fields', text)
+                QMessageBox.warning(self, title, text)
             else:
                 self._enable_acceptance_btns(False)
         return valid
 
     def group(self, title, fieldnames, layout='vertical'):
-        # FIXME: doc
-        """Groups fields in a common area under a title.
+        """Groups fields in a common area under a title using chosen layout.
 
         :param title: title of the group
         :type title: :class:`str`
@@ -283,8 +305,9 @@ class Form(QDialog):
         :param fieldnames: names of the fields to group
         :type fieldnames: iterable of :class:`str`
 
-        :param groupkw: keyword arguments to pass to
-                        :class:`~campos.basic.widgets.Group` constructor
+        :param layout: layout manager used to arrange fields inside the group.
+                       Defaults to 'vertical'.
+        :type layout: one of ('vertical', 'horizontal', 'grid')
         """
         group = QGroupBox()
         group.setTitle(title)
