@@ -36,10 +36,11 @@ if __name__ == '__main__':
     country = campos.SelectField(name='country', text='Country',
                                  choices=['Cuba', 'EE.UU'])
 
-    form = campos.Form(validation='instant', fields=(id, name, last, country),
-                       options=('save', 'cancel'), on_cancel=confirm_cancel)
+    form = campos.CreationForm(validation='instant', fields=(id, name, last, country),
+                        on_cancel=confirm_cancel)
     form.setWindowTitle('New Person')
 
     # group some fields
     form.group('Very personal info', ['id', 'name', 'last_name'], layout='grid')
+    form.exec()
     sys.exit(form.exec())

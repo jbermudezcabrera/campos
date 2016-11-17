@@ -344,22 +344,18 @@ class Form(QDialog):
 class CreationForm(Form):
     """Form subclass with useful defaults to create new objects.
 
-    This form's options defaults to ``('reset', 'accept', 'cancel')``.
+    This form's options defaults to ``('reset', 'ok', 'cancel')``.
     Also, a :func:`reset` method is included and connected by default
-    to a reset button to restore all fields in the form to their default values.
+    to the reset button to restore all fields in the form to their default
+    values.
 
     .. seealso:: :class:`EditionForm`
     """
 
     def __init__(self, **kwargs):
-        kwargs.setdefault('options', ('reset', 'accept', 'cancel'))
+        kwargs.setdefault('options', ('reset', 'ok', 'cancel'))
         kwargs.setdefault('on_reset', self.reset)
-        kwargs.setdefault('title', 'Create')
         super(CreationForm, self).__init__(**kwargs)
-
-    def close(self):
-        super().close()
-        self.reset()
 
     def reset(self):
         """Restores all fields in the form to their default values"""
@@ -368,11 +364,11 @@ class CreationForm(Form):
 
     @staticmethod
     def from_source(obj, **source_kw):
-        title = 'Create {}'.format(type(obj).__name__.capitalize())
         source = sources.get_fields_source(obj, **source_kw)
 
-        return CreationForm(title=title, members=source.fields.values(),
-                            validation='current')
+        form = CreationForm(fields=source.fields.values(), validation='current')
+        form.setWindowTitle('Create {}'.format(type(obj).__name__.capitalize()))
+        return form
 
 
 class EditionForm(Form):

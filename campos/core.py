@@ -75,7 +75,12 @@ class Field(Qt.QWidget):
         Field._FIELDS_COUNT += 1
 
         self.default = default
-        self.value = self.default
+        try:
+            self.value = self.default
+        except TypeError:
+            msg = 'Expecting valid default value for {}, got {}'
+            msg = msg.format(type(self).__name__, self.default)
+            raise TypeError(msg)
 
         self._name = None
         self.name = name
