@@ -50,6 +50,9 @@ class IntField(BaseField):
     def value(self, value):
         self.MAIN_COMPONENT.setValue(value)
 
+    def has_data(self):
+        return True
+
     @property
     def step(self):
         """Amount to increase or decrease current value by.
@@ -150,6 +153,9 @@ class StringField(BaseField):
     def value(self, new):
         self.MAIN_COMPONENT.setText(new)
 
+    def has_data(self):
+        return len(self.value) > 0
+
     @property
     def min_length(self):
         """Minimum admitted length.
@@ -220,6 +226,9 @@ class BoolField(BaseField):
     def value(self, value):
         self.MAIN_COMPONENT.setChecked(value)
 
+    def has_data(self):
+        return True
+
 
 class DateField(BaseField):
     """Field to introduce :class:`datetime.date` values.
@@ -268,6 +277,9 @@ class DateField(BaseField):
     @value.setter
     def value(self, value):
         self.MAIN_COMPONENT.setDate(self._to_date(value))
+
+    def has_data(self):
+        return True
 
     @property
     def format(self):
@@ -371,6 +383,9 @@ class TimeField(BaseField):
     @value.setter
     def value(self, value):
         self.MAIN_COMPONENT.setTime(self._to_time(value))
+
+    def has_data(self):
+        return True
 
     @property
     def format(self):
@@ -530,6 +545,9 @@ class DatetimeField(BaseField):
     def value(self, value):
         self.MAIN_COMPONENT.setDateTime(self._to_datetime(value))
 
+    def has_data(self):
+        return True
+
     def _to_datetime(self, value):
         qdatetime = value
         if isinstance(qdatetime, str):
@@ -629,6 +647,9 @@ class SelectField(BaseField):
         if index < 0 and self.choices:
             raise ValueError('No choice with text {}'.format(new))
         self.MAIN_COMPONENT.setCurrentIndex(index)
+
+    def has_data(self):
+        return self.MAIN_COMPONENT.currentIndex() >= 0
 
     def add_choice(self, text, value):
         """Adds a new choice to the options list.
@@ -763,6 +784,9 @@ class FileField(BaseField):
     def value(self, value):
         self._string.value = self.PATHS_SEP.join(value)
 
+    def has_data(self):
+        return self._string.has_data()
+
     @property
     def chooser_title(self):
         """Text to show in the file chooser.
@@ -891,6 +915,9 @@ class DirField(BaseField):
     @value.setter
     def value(self, value):
         self._string.value = value
+
+    def has_data(self):
+        return self._string.has_data()
 
     @property
     def chooser_title(self):

@@ -10,8 +10,6 @@ __author__ = 'Juan Manuel Bermúdez Cabrera'
 
 
 class Field(Qt.QWidget):
-    # TODO: field subclasses must implement a has_data method to see when data
-    # has been introduced
     """Base class for input fields, isn't generally used directly.
 
     A field is usually composed of a label and an input component. The field's
@@ -21,8 +19,9 @@ class Field(Qt.QWidget):
     validation, see :class:`~campos.enums.Validation` enum for possible
     validation mechanisms.
 
-    Subclasses must define a CHANGE_SIGNAL attribute referencing a valid Qt
-    signal which is fired whenever the field's value changes.
+    Subclasses must implement :func:`has_data` method and define a CHANGE_SIGNAL
+    attribute referencing a valid Qt signal which is fired whenever the field's
+    value changes.
 
     :param name: text to identify the field inside forms or other contexts,
                  must be a valid variable name, it defaults to
@@ -245,6 +244,14 @@ class Field(Qt.QWidget):
     def value(self, value):
         raise NotImplementedError
 
+    def has_data(self):
+        """Check if the field has any data.
+
+        :returns: True only if the field contains any data
+        :rtype: :class:`bool`
+        """
+        raise NotImplementedError
+
     def validate(self):
         """Validates field's current value using current validators. After
         validation all errors are stored in ``errors`` list in the form of
@@ -255,6 +262,9 @@ class Field(Qt.QWidget):
         :rtype: :class:`bool`
         """
         self.errors.clear()
+
+        if not (self.required or self.has_data()):
+            return True
 
         for validator in self.validators:
             try:
