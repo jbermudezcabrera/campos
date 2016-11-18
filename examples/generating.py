@@ -1,57 +1,83 @@
-"""This example shows how to obtain fully functional forms
-for creation and edition using your custom python object.
-It also demonstrates how to prepare a form for edition of
-a given object.
+"""This example demonstrates the basics on generating forms from your models
+using campos.
+
+This example creates the exact same form that ``building`` example but uses
+generated fields instead.
 """
-
-import sys
-from datetime import date
-from collections import namedtuple
-
-import campos
-from campos import validators
 
 __author__ = 'Juan Manuel Bermúdez Cabrera'
 
-Person = namedtuple('Person', 'fullname address age birth_date height exclude_me')
 
-person = Person('Pepito Candela Viva', 'Santa Clara, Cuba', 20,
-                date.today().replace(1996), 1.85, 'excluded')
+def fake_create_person(form):
+    if form.valid:
+        msg = 'ID: {}<br/>'.format(form.id)
+        msg += 'Name: {}<br/>'.format(form.name)
+        msg += 'Last name: {}<br/>'.format(form.last_name)
+        msg += 'Phone: {}<br/>'.format(form.phone)
+        msg += 'Address: {}<br/>'.format(form.address)
+        msg += 'Country: {}<br/>'.format(form.country[0])
+
+        msg = 'New person created correctly with values:<br/>{}'.format(msg)
+        msg = '<html>{}</html>'.format(msg)
+
+        QMessageBox.information(None, 'Created', msg)
+        form.close()
+
+
+def create_form(person):
+    form = campos.CreationForm.from_source(person, exclude=['country'])
+    form.button('save').clicked.connect(partial(fake_create_person, form))
+
+    id = form.field('id')
+    id.text = 'Personal ID'
+    id.required = True
+    id.max_length = 11
+
+    form.field('name').required = True
+    form.field('last_name').required = True
+
+    val = campos.RegExp(r'\+?\d+', message='Invalid phone number')
+    phone = form.field('phone')
+    phone.text = 'Phone number'
+    phone.validators.append(val)
+
+    form.field('address').text = 'Home address'
+
+    country = campos.SelectField(name='country', text='Country', blank=True,
+                                 blank_text='Other', choices=['Cuba', 'EE.UU'],
+                                 default='Cuba')
+    form.add_field(country)
+
+    # group some fields
+    form.group('Very personal info', ('phone', 'address'), layout='grid')
+    form.group('Identification', ['id', 'name', 'last_name'])
+    return form
+
 
 if __name__ == '__main__':
-    from PyQt4.QtGui import QApplication
-
-    app = QApplication(sys.argv)
+    import os
+    import sys
+    from functools import partial
+    from collections import namedtuple
 
     # set gui api to use
-    campos.set_views_package('pyqt4')
+    os.environ['QT_API'] = 'pyside'
 
-    # create a New Person form and and Edit Person from a Person object excluding an attribute
-    new, edition = campos.get_forms(person, exclude=['exclude_me'])
+    from qtpy.QtWidgets import QMessageBox, QApplication
 
-    # add some validation to New Person Form
-    name = new.field('fullname')
-    name.required = True
-    name.min_length = 10
-    name.max_length = 50
+    import campos
 
-    address = new.field('address')
-    address.required = True
+    # define a Person type
+    Person = namedtuple('Person', 'id name last_name phone address country')
 
-    # add a new button with a custom callback
-    btn = campos.Button(text='Call lambda', role='default',
-                        on_click=lambda: print('click'))
-    new.add_button(btn)
+    # create a person object
+    penny = Person(id='F4356721', name='Kaley', last_name='Cuoco', phone='',
+                   address='', country='EE.UU')
 
-    # add a new field with validation
-    f = campos.StringField(name='ten', text='Up to 10 chars',
-                           max_length=10)
-    new.add_member(f)
+    # set global settings for validation type and label positions
+    campos.Validation.set_current('instant')
+    campos.Labelling.set_current('top')
 
-    # fills Edit Person form with data from a Person object
-    # full name field value can't be changed
-    edition.edit(person, disabled=['fullname'])
-
-    # show both forms
-    new.show()
-    sys.exit(edition.show())
+    app = QApplication(sys.argv)
+    dialog = create_form(penny)
+    sys.exit(dialog.exec())

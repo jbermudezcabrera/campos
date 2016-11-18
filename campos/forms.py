@@ -151,7 +151,7 @@ class Form(QDialog):
         source = sources.get_fields_source(obj, **source_kw)
         fields = source.fields.values()
 
-        form = Form(fields=fields, validation='current')
+        form = Form(fields=fields)
         form.setWindowTitle(title)
         return form
 
@@ -213,6 +213,32 @@ class Form(QDialog):
         if callable(on_click):
             button.clicked.connect(on_click)
         return button
+
+    def button(self, which):
+        """Finds a button given its type.
+
+        :param which: button type to find, must be a valid member of
+                      :class:`~campos.enums.ButtonType` enum(note that you can
+                      use strings)
+        :type which: :class:`str` or :class:`~campos.enums.ButtonType`
+
+        :returns: the button which type matches the argument
+        :rtype: ``QPushButton``
+
+        :raises ValueError: if no button of the given type was found
+        """
+        if isinstance(which, (str, ButtonType)):
+            btype = ButtonType.get_member(which)
+            standard_btn = btype.value
+            button = self.button_box.button(standard_btn)
+
+            if button is None:
+                msg = "{} is not present in form's options".format(btype)
+                raise ValueError(msg)
+            return button
+
+        msg = 'Expecting {} member, got {}'.format(ButtonType.__name__, which)
+        raise ValueError(msg)
 
     def field(self, name):
         """Find a field by its name.
@@ -343,7 +369,7 @@ class Form(QDialog):
 class CreationForm(Form):
     """Form subclass with useful defaults to create new objects.
 
-    This form's options defaults to ``('reset', 'ok', 'cancel')``.
+    This form's options defaults to ``('reset', 'save', 'cancel')``.
     Also, a :func:`reset` method is included and connected by default
     to the reset button to restore all fields in the form to their default
     values.
@@ -352,7 +378,7 @@ class CreationForm(Form):
     """
 
     def __init__(self, **kwargs):
-        kwargs.setdefault('options', ('reset', 'ok', 'cancel'))
+        kwargs.setdefault('options', ('reset', 'save', 'cancel'))
         kwargs.setdefault('on_reset', self.reset)
         super(CreationForm, self).__init__(**kwargs)
 
@@ -368,7 +394,7 @@ class CreationForm(Form):
     def from_source(obj, **source_kw):
         source = sources.get_fields_source(obj, **source_kw)
 
-        form = CreationForm(fields=source.fields.values(), validation='current')
+        form = CreationForm(fields=source.fields.values())
         title = 'Create {}'.format(type(obj).__name__.capitalize())
         form.setWindowTitle(title)
 
@@ -426,7 +452,7 @@ class EditionForm(Form):
     def from_source(obj, **source_kw):
         source = sources.get_fields_source(obj, **source_kw)
 
-        form = EditionForm(fields=source.fields.values(), validation='default')
+        form = EditionForm(fields=source.fields.values())
         title = 'Edit {}'.format(type(obj).__name__.capitalize())
         form.setWindowTitle(title)
 

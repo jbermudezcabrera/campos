@@ -45,9 +45,8 @@ def create_form():
     fields = (id, name, last, phone, address, country)
 
     global form
-    form = campos.CreationForm(options=('reset', 'save', 'cancel'),
-                               on_save=fake_create_person, fields=fields)
-    form.setWindowTitle('Create person')
+    form = campos.CreationForm(on_save=fake_create_person, fields=fields)
+    form.setWindowTitle('Create Person')
 
     # group some fields
     form.group('Very personal info', ('phone', 'address'), layout='grid')
