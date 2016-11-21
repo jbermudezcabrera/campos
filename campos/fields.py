@@ -628,11 +628,11 @@ class SelectField(BaseField):
 
     @property
     def value(self):
-        # FIXME: value setter should receive the same thing it returns
         """The selected option.
 
-        .. note:: To change the current selection you need to pass only the new
-                  option's text.
+        .. note:: To change the current selection you can pass only the new
+                  option's text or a tuple like
+                  ``(option's text, option's value)``.
 
         :return: a :class:`tuple` like ``(option's text, option's value)``
         :rtype: :class:`tuple`
@@ -643,10 +643,15 @@ class SelectField(BaseField):
 
     @value.setter
     def value(self, new):
-        index = self.MAIN_COMPONENT.findText(new)
+        if isinstance(new, str):
+            text = new
+        else:
+            text, _ = new
+
+        index = self.MAIN_COMPONENT.findText(text)
 
         if index < 0 and self.choices:
-            raise ValueError('No choice with text {}'.format(new))
+            raise ValueError('No choice with text {}'.format(text))
         self.MAIN_COMPONENT.setCurrentIndex(index)
 
     def has_data(self):
