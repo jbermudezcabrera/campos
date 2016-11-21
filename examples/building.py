@@ -71,4 +71,4 @@ if __name__ == '__main__':
 
     app = QApplication(sys.argv)
     dialog = create_form()
-    sys.exit(dialog.exec())
+    sys.exit(dialog.exec_())

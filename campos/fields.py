@@ -628,6 +628,7 @@ class SelectField(BaseField):
 
     @property
     def value(self):
+        # FIXME: value setter should receive the same thing it returns
         """The selected option.
 
         .. note:: To change the current selection you need to pass only the new

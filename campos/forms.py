@@ -76,10 +76,6 @@ class Form(QDialog):
                     buttons. Note that the keyword(except the on_ part) matches
                     the option name(``ButtonType`` member's name).
 
-                    Buttons with a rejection role fallback to ``form.close()``
-                    if no callback is assigned. To avoid this behavior add
-                    buttons manually using :func:`add_button`
-
     :type options: iterable of :class:`str`, :class:`~campos.enums.ButtonType`
                    or ``QPushButton``
 
@@ -113,12 +109,7 @@ class Form(QDialog):
                     callback_kw = 'on_{}'.format(opt.name.lower())
 
                 callback = kwargs.get(callback_kw)
-
-            button = self.add_button(opt, on_click=callback)
-
-            if not callback:
-                if self.button_box.buttonRole(button) in self.REJECTION_ROLES:
-                    button.clicked.connect(self.close)
+            self.add_button(opt, on_click=callback)
 
         self.fields = []
 
@@ -477,7 +468,7 @@ class EditionForm(Form):
 
         for field in self.fields:
             # enable to remove settings from previous editions
-            field.enable()
+            field.setEnabled(True)
 
             # save field's real default value
             self._real_defaults[field.name] = field.default
@@ -490,7 +481,7 @@ class EditionForm(Form):
 
                 # disable if necessary
                 if field.name in disabled:
-                    field.disable()
+                    field.setEnabled(False)
         return self
 
     def _restore_real_defaults(self):
