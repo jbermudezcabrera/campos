@@ -22,53 +22,58 @@ class FieldSource(metaclass=abc.ABCMeta):
     Inspects an object looking for valid attributes to create fields,
     callables are always ignored and extra filters can be provided using
     keyword arguments(``exclude``, ``under``, ``dunder``). Field's text can
-    be modified by setting ``prettify = True`` (default) or providing a custom
+    be modified by setting ``prettify=True`` (default) or providing a custom
     transformation function using ``apply`` keyword.
 
-    The following steps are performed when extracting object attributes valid
+    The following steps are performed when extracting valid object attributes
     to create fields:
 
-    * Non-callable attributes and their values are extracted from the provided object.
+    * Non-callable attributes and their values are extracted from the provided
+      object.
 
-    * Attribute names are filtered using expressions in ``exclude`` and values of ``under``
-      (beginning with exactly one _) and ``dunder`` (beginning with two or more _).
+    * Attribute names are filtered using expressions in ``exclude`` and values
+      of ``under``(beginning with exactly one _) and ``dunder`` (beginning with
+      two or more _).
 
-    * A transformation function(if provided through ``apply`` keyword) is used to obtain
-      a nice text for the future field using attribute's name.
+    * A transformation function(if provided through ``apply`` keyword) is used
+      to obtain a nice text for the future field using attribute's name.
 
-    * Some simple and common transformations such as _ removal and text capitalization
-      are done upon attributes names in order to obtain a nice text for the future field.
-      Note this step is performed even if a transformation function is provided, to disable
-      this behavior set ``pretiffy = False``.
+    * Some simple and common transformations such as _ removal and text
+      capitalization are done upon attributes names in order to obtain a nice
+      text for the future field. Note this step is performed even if a
+      transformation function is provided, to disable this behavior set
+      ``pretiffy=False``.
 
-    * Finally only attributes with supported python types can pass, see :attr:`SUPPORTED_TYPES`.
-      Subclasses must implement this check accordingly since some objects may contain wrapped
-      python types.
+    * Finally only attributes with supported python types can pass, see
+      :attr:`SUPPORTED_TYPES`. Subclasses must implement this check accordingly
+      since some objects may contain wrapped python types.
 
-    Fields are created after this filtering process, this is done by calling an utility function
-    designed for each supported python type. See :func:`from_bool`, :func:`from_int`,
-    :func:`from_str`, etc. Subclasses must implement :func:`create_fields` for this.
+    Fields are created after this filtering process, this is done by calling an
+    utility function designed for each supported python type.
+    See :func:`from_bool`, :func:`from_int`, :func:`from_str`, etc.
+    Subclasses must implement :func:`create_fields` for this.
 
     :param obj: object to extract fields from
     :type obj: any
 
-    :param exclude: regular expressions to exclude, attribute names matching any of these will be
-                    ignored.
+    :param exclude: regular expressions to exclude, attribute names matching
+                    any of these will be ignored.
     :type exclude: iterable of :class:`str` or compiled :mod:`re`
 
-    :param under: whether to allow or not attribute names beginning with exactly one _.
-                  Defaults to False.
+    :param under: whether to allow or not attribute names beginning with
+                  exactly one _. Defaults to False.
 
-    :param dunder: whether to allow or not attribute names beginning with two or more _.
-                   Defaults to False.
+    :param dunder: whether to allow or not attribute names beginning with two
+                   or more _. Defaults to False.
 
-    :param prettify: perform some simple and common transformations such as _ removal and
-                     text capitalization upon attributes names in order to obtain a nice text
-                     for the future field. Defaults to True.
+    :param prettify: perform some simple and common transformations such as _
+                     removal and text capitalization upon attributes names in
+                     order to obtain a nice text for the future field.
+                     Defaults to True.
 
-    :param apply: transformation function to apply to each attribute name to obtain
-                  a nice text for the future field. Note that if ``prettify = True``
-                  this is done after that step.
+    :param apply: transformation function to apply to each attribute name to
+                  obtain a nice text for the future field. Note that if
+                  ``prettify=True`` this is done after that step.
     :type apply: callable
     """
 
@@ -174,12 +179,13 @@ def get_fields_source(arg, **source_kw):
     :param arg: object to find the right field source for.
     :param arg: any
 
-    :param source_kw: keyword arguments to pass to the ``FieldSource`` constructor.
+    :param source_kw: keyword arguments to pass to the ``FieldSource``
+                      constructor.
 
     :return: a new field source object
     :rtype: :class:`FieldSource`
 
-    :raises: ValueError: if argument is ``None``
+    :raises ValueError: if argument is ``None``
     """
     msg = "Can't obtain a field source from {}".format(arg)
     if arg is None:
@@ -187,7 +193,8 @@ def get_fields_source(arg, **source_kw):
 
     source = None
     try:
-        # if SQLAlchemy can't be imported it's pretty sure arg is not a SQLAlchemy object
+        # if SQLAlchemy can't be imported it's pretty sure arg is not a
+        # SQLAlchemy object
         from sqlalchemy import Table
     except ImportError:
         pass
@@ -218,7 +225,7 @@ def from_bool(name, text, value, **kwargs):
     :param kwargs: keyword arguments to pass to field constructor
 
     :return: a new ``BoolField`` with the given name and text
-    :rtype: :class:`~campos.composite.fields.BoolField`
+    :rtype: :class:`~campos.fields.BoolField`
     """
     fkwargs = kwargs.copy()
     fkwargs['name'] = name
@@ -242,7 +249,7 @@ def from_int(name, text, value, **kwargs):
     :param kwargs: keyword arguments to pass to field constructor
 
     :return: a new ``IntField`` with the given name and text
-    :rtype: :class:`~campos.composite.fields.IntField`
+    :rtype: :class:`~campos.fields.IntField`
     """
     fkwargs = kwargs.copy()
     fkwargs['name'] = name
@@ -278,7 +285,7 @@ def from_float(name, text, value, **kwargs):
     :param kwargs: keyword arguments to pass to field constructor
 
     :return: a new ``FloatField`` with the given name and text
-    :rtype: :class:`~campos.composite.fields.FloatField`
+    :rtype: :class:`~campos.fields.FloatField`
     """
     fkwargs = kwargs.copy()
     fkwargs['name'] = name
@@ -323,8 +330,8 @@ def from_str(name, text, value, istext=False, **kwargs):
     :param kwargs: keyword arguments to pass to field constructor
 
     :return: a new ``StringField`` or ``TextField`` with the given name and text
-    :rtype: :class:`~campos.composite.fields.StringField` or
-            :class:`~campos.composite.fields.TextField`
+    :rtype: :class:`~campos.fields.StringField` or
+            :class:`~campos.fields.TextField`
     """
     fkwargs = kwargs.copy()
     fkwargs['name'] = name
@@ -354,7 +361,7 @@ def from_date(name, text, value, **kwargs):
     :param kwargs: keyword arguments to pass to field constructor
 
     :return: a new ``DateField`` with the given name and text
-    :rtype: :class:`~campos.composite.fields.DateField`
+    :rtype: :class:`~campos.fields.DateField`
 
     .. seealso:: :func:`from_time` and :func:`from_datetime`
     """
@@ -384,7 +391,7 @@ def from_time(name, text, value, **kwargs):
     :param kwargs: keyword arguments to pass to field constructor
 
     :return: a new ``TimeField`` with the given name and text
-    :rtype: :class:`~campos.composite.fields.TimeField`
+    :rtype: :class:`~campos.fields.TimeField`
 
     .. seealso:: :func:`from_date` and :func:`from_datetime`
     """
@@ -414,7 +421,7 @@ def from_datetime(name, text, value, **kwargs):
     :param kwargs: keyword arguments to pass to field constructor
 
     :return: a new ``DatetimeField`` with the given name and text
-    :rtype: :class:`~campos.composite.fields.DatetimeField`
+    :rtype: :class:`~campos.fields.DatetimeField`
 
     .. seealso:: :func:`from_date` and :func:`from_time`
     """
