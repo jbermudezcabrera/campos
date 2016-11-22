@@ -120,7 +120,7 @@ if __name__ == '__main__':
     campos.Labelling.set_current('top')
 
     app = QApplication(sys.argv)
-    window = loadUi('person.ui')
+    window = loadUi('integration.ui')
     window.actionAbout_Qt.triggered.connect(QApplication.instance().aboutQt)
 
     creation, edition = create_forms(penny)
