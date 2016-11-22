@@ -157,7 +157,7 @@ class Form(QDialog):
 
         field.validation = 'manual'
         if self.validation == Validation.INSTANT:
-            field.CHANGE_SIGNAL.connect(self.validate)
+            field.change_signal.connect(self.validate)
             # force validation when new fields are added
             self.validate()
 
@@ -172,7 +172,7 @@ class Form(QDialog):
         """
         field = self.field(name)
         if self.validation == Validation.INSTANT:
-            field.CHANGE_SIGNAL.disconnect(self.validate)
+            field.change_signal.disconnect(self.validate)
 
         self.members_layout.removeWidget(field)
         self.fields.remove(field)
@@ -272,10 +272,10 @@ class Form(QDialog):
         if self._validation != previous:
             if self._validation == Validation.INSTANT:
                 for f in self.fields:
-                    f.CHANGE_SIGNAL.connect(self.validate)
+                    f.change_signal.connect(self.validate)
             elif previous is not None:
                 for f in self.fields:
-                    f.CHANGE_SIGNAL.disconnect(self.validate)
+                    f.change_signal.disconnect(self.validate)
 
     def validate(self, title='Invalid fields', msg=None):
         """Runs validation on every field of this form.

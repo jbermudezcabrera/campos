@@ -27,8 +27,7 @@ class IntField(BaseField):
     """
 
     def __init__(self, *args, min=0, max=100, step=1, **kwargs):
-        self.MAIN_COMPONENT = Qt.QSpinBox()
-        self.CHANGE_SIGNAL = self.MAIN_COMPONENT.valueChanged
+        self._spin = Qt.QSpinBox()
 
         kwargs.setdefault('default', 0)
         super(IntField, self).__init__(*args, **kwargs)
@@ -43,12 +42,20 @@ class IntField(BaseField):
         self.step = step
 
     @property
+    def main_component(self):
+        return self._spin
+
+    @property
+    def change_signal(self):
+        return self.main_component.valueChanged
+
+    @property
     def value(self):
-        return self.MAIN_COMPONENT.value()
+        return self.main_component.value()
 
     @value.setter
     def value(self, value):
-        self.MAIN_COMPONENT.setValue(value)
+        self.main_component.setValue(value)
 
     def has_data(self):
         return True
@@ -59,11 +66,11 @@ class IntField(BaseField):
 
         :type: :class:`int`
         """
-        return self.MAIN_COMPONENT.singleStep()
+        return self.main_component.singleStep()
 
     @step.setter
     def step(self, value):
-        self.MAIN_COMPONENT.setSingleStep(value)
+        self.main_component.setSingleStep(value)
 
     @property
     def min(self):
@@ -76,7 +83,7 @@ class IntField(BaseField):
     @min.setter
     def min(self, value):
         self._range.min = value
-        self.MAIN_COMPONENT.setMinimum(value)
+        self.main_component.setMinimum(value)
 
     @property
     def max(self):
@@ -89,7 +96,7 @@ class IntField(BaseField):
     @max.setter
     def max(self, value):
         self._range.max = value
-        self.MAIN_COMPONENT.setMaximum(value)
+        self.main_component.setMaximum(value)
 
 
 class FloatField(IntField):
@@ -100,12 +107,17 @@ class FloatField(IntField):
     """
 
     def __init__(self, *args, precision=2, **kwargs):
-        self.MAIN_COMPONENT = Qt.QDoubleSpinBox()
-        self.CHANGE_SIGNAL = self.MAIN_COMPONENT.valueChanged
+        self._double_spin = Qt.QDoubleSpinBox()
 
         kwargs.setdefault('default', 0)
         super(FloatField, self).__init__(*args, **kwargs)
+
         self.precision = precision
+        self.value = self.default
+
+    @property
+    def main_component(self):
+        return self._double_spin
 
     @property
     def precision(self):
@@ -113,11 +125,11 @@ class FloatField(IntField):
 
         :type: :class:`int`
         """
-        return self.MAIN_COMPONENT.decimals()
+        return self.main_component.decimals()
 
     @precision.setter
     def precision(self, value):
-        self.MAIN_COMPONENT.setDecimals(value)
+        self.main_component.setDecimals(value)
 
 
 class StringField(BaseField):
@@ -131,8 +143,7 @@ class StringField(BaseField):
     """
 
     def __init__(self, *args, min_length=0, max_length=100, **kwargs):
-        self.MAIN_COMPONENT = Qt.QLineEdit()
-        self.CHANGE_SIGNAL = self.MAIN_COMPONENT.textChanged
+        self._editor = Qt.QLineEdit()
 
         kwargs.setdefault('default', '')
         super(StringField, self).__init__(*args, **kwargs)
@@ -146,12 +157,20 @@ class StringField(BaseField):
         self.max_length = self._length.max
 
     @property
+    def main_component(self):
+        return self._editor
+
+    @property
+    def change_signal(self):
+        return self.main_component.textChanged
+
+    @property
     def value(self):
-        return self.MAIN_COMPONENT.text()
+        return self.main_component.text()
 
     @value.setter
     def value(self, new):
-        self.MAIN_COMPONENT.setText(new)
+        self.main_component.setText(new)
 
     def has_data(self):
         return len(self.value) > 0
@@ -185,46 +204,72 @@ class StringField(BaseField):
             msg = 'Expecting non negative number, got {}'
             raise ValueError(msg.format(value))
         self._length.max = value
-        self.MAIN_COMPONENT.setMaxLength(value)
+        self.main_component.setMaxLength(value)
 
 
 class TextField(StringField):
     """Field to introduce large strings"""
 
     def __init__(self, *args, **kwargs):
-        self.MAIN_COMPONENT = Qt.QTextEdit()
-        self.CHANGE_SIGNAL = self.MAIN_COMPONENT.textChanged
+        self._text_editor = Qt.QTextEdit()
 
         kwargs.setdefault('default', '')
         kwargs.setdefault('max_length', 1000)
+
         super(TextField, self).__init__(*args, **kwargs)
 
     @property
+    def main_component(self):
+        return self._text_editor
+
+    @property
     def value(self):
-        return self.MAIN_COMPONENT.toPlainText()
+        return self.main_component.toPlainText()
 
     @value.setter
     def value(self, value):
-        self.MAIN_COMPONENT.setPlainText(value)
+        self.main_component.setPlainText(value)
+
+    @property
+    def max_length(self):
+        """Maximum admitted length.
+
+        :type: :class:`int`
+        """
+        return self._length.max
+
+    @max_length.setter
+    def max_length(self, value):
+        if value < 0:
+            msg = 'Expecting non negative number, got {}'
+            raise ValueError(msg.format(value))
+        self._length.max = value
 
 
 class BoolField(BaseField):
     """Field to ask for yes or no input"""
 
     def __init__(self, *args, **kwargs):
-        self.MAIN_COMPONENT = Qt.QCheckBox('')
-        self.CHANGE_SIGNAL = self.MAIN_COMPONENT.stateChanged
+        self._box = Qt.QCheckBox('')
 
         kwargs.setdefault('default', False)
-        super(BaseField).__init__(*args, **kwargs)
+        super(BoolField, self).__init__(*args, **kwargs)
+
+    @property
+    def main_component(self):
+        return self._box
+
+    @property
+    def change_signal(self):
+        return self._box.stateChanged
 
     @property
     def value(self):
-        return self.MAIN_COMPONENT.isChecked()
+        return self.main_component.isChecked()
 
     @value.setter
     def value(self, value):
-        self.MAIN_COMPONENT.setChecked(value)
+        self.main_component.setChecked(value)
 
     def has_data(self):
         return True
@@ -250,9 +295,8 @@ class DateField(BaseField):
 
     def __init__(self, *args, format='dd/MM/yyyy', min=date.today(),
                  max=date.max, **kwargs):
-        self.MAIN_COMPONENT = Qt.QDateEdit()
-        self.MAIN_COMPONENT.setCalendarPopup(True)
-        self.CHANGE_SIGNAL = self.MAIN_COMPONENT.dateChanged
+        self._editor = Qt.QDateEdit()
+        self._editor.setCalendarPopup(True)
 
         kwargs.setdefault('default', date.today())
         super(DateField, self).__init__(*args, **kwargs)
@@ -271,12 +315,20 @@ class DateField(BaseField):
         self.validators.append(self._range)
 
     @property
+    def main_component(self):
+        return self._editor
+
+    @property
+    def change_signal(self):
+        return self.main_component.dateChanged
+
+    @property
     def value(self):
-        return self._to_date(self.MAIN_COMPONENT.date())
+        return self._to_date(self.main_component.date())
 
     @value.setter
     def value(self, value):
-        self.MAIN_COMPONENT.setDate(self._to_date(value))
+        self.main_component.setDate(self._to_date(value))
 
     def has_data(self):
         return True
@@ -288,11 +340,11 @@ class DateField(BaseField):
 
         :type: :class:`str`
         """
-        return self.MAIN_COMPONENT.displayFormat()
+        return self.main_component.displayFormat()
 
     @format.setter
     def format(self, value):
-        self.MAIN_COMPONENT.setDisplayFormat(value)
+        self.main_component.setDisplayFormat(value)
 
     @property
     def min(self):
@@ -308,7 +360,7 @@ class DateField(BaseField):
     @min.setter
     def min(self, value):
         py_date = self._to_date(value)
-        self.MAIN_COMPONENT.setMinimumDate(py_date)
+        self.main_component.setMinimumDate(py_date)
         self._range.min = py_date
 
     @property
@@ -325,7 +377,7 @@ class DateField(BaseField):
     @max.setter
     def max(self, value):
         py_date = self._to_date(value)
-        self.MAIN_COMPONENT.setMaximumDate(py_date)
+        self.main_component.setMaximumDate(py_date)
         self._range.max = py_date
 
     def _to_date(self, value):
@@ -357,8 +409,7 @@ class TimeField(BaseField):
 
     def __init__(self, *args, format='HH:mm:ss', min=time.min, max=time.max,
                  **kwargs):
-        self.MAIN_COMPONENT = Qt.QTimeEdit()
-        self.CHANGE_SIGNAL = self.MAIN_COMPONENT.timeChanged
+        self._editor = Qt.QTimeEdit()
 
         kwargs.setdefault('default', datetime.now().time())
         super(TimeField, self).__init__(*args, **kwargs)
@@ -377,12 +428,20 @@ class TimeField(BaseField):
         self.validators.append(self._range)
 
     @property
+    def main_component(self):
+        return self._editor
+
+    @property
+    def change_signal(self):
+        return self.main_component.timeChanged
+
+    @property
     def value(self):
-        return self._to_time(self.MAIN_COMPONENT.time())
+        return self._to_time(self.main_component.time())
 
     @value.setter
     def value(self, value):
-        self.MAIN_COMPONENT.setTime(self._to_time(value))
+        self.main_component.setTime(self._to_time(value))
 
     def has_data(self):
         return True
@@ -394,11 +453,11 @@ class TimeField(BaseField):
 
         :type: :class:`str`
         """
-        return self.MAIN_COMPONENT.displayFormat()
+        return self.main_component.displayFormat()
 
     @format.setter
     def format(self, value):
-        self.MAIN_COMPONENT.setDisplayFormat(value)
+        self.main_component.setDisplayFormat(value)
 
     @property
     def min(self):
@@ -416,7 +475,7 @@ class TimeField(BaseField):
         # first convert input to a valid time object since value can be a string
         py_time = self._to_time(value
                                 )
-        self.MAIN_COMPONENT.setMinimumTime(py_time)
+        self.main_component.setMinimumTime(py_time)
         self._range.min = py_time
 
     @property
@@ -435,7 +494,7 @@ class TimeField(BaseField):
         # first convert input to a valid time object since value can be a string
         py_time = self._to_time(value)
 
-        self.MAIN_COMPONENT.setMaximumTime(py_time)
+        self.main_component.setMaximumTime(py_time)
         self._range.max = py_time
 
     def _to_time(self, value):
@@ -470,9 +529,8 @@ class DatetimeField(BaseField):
 
     def __init__(self, *args, format='dd/MM/yyyy HH:mm:ss', min=datetime.min,
                  max=datetime.max, **kwargs):
-        self.MAIN_COMPONENT = Qt.QDateTimeEdit()
-        self.MAIN_COMPONENT.setCalendarPopup(True)
-        self.CHANGE_SIGNAL = self.MAIN_COMPONENT.dateTimeChanged
+        self._editor = Qt.QDateTimeEdit()
+        self._editor.setCalendarPopup(True)
 
         kwargs.setdefault('default', datetime.now())
         super(DatetimeField, self).__init__(*args, **kwargs)
@@ -491,6 +549,14 @@ class DatetimeField(BaseField):
         self.validators.append(self._range)
 
     @property
+    def main_component(self):
+        return self._editor
+
+    @property
+    def change_signal(self):
+        return self.main_component.dateTimeChanged
+
+    @property
     def min(self):
         """Minimum admitted datetime.
 
@@ -504,7 +570,7 @@ class DatetimeField(BaseField):
     @min.setter
     def min(self, value):
         dt = self._to_datetime(value)
-        self.MAIN_COMPONENT.setMinimumDateTime(dt)
+        self.main_component.setMinimumDateTime(dt)
         self._range.min = dt
 
     @property
@@ -521,7 +587,7 @@ class DatetimeField(BaseField):
     @max.setter
     def max(self, value):
         dt = self._to_datetime(value)
-        self.MAIN_COMPONENT.setMaximumDateTime(dt)
+        self.main_component.setMaximumDateTime(dt)
         self._range.max = dt
 
     @property
@@ -531,19 +597,19 @@ class DatetimeField(BaseField):
 
         :type: :class:`str`
         """
-        return self.MAIN_COMPONENT.displayFormat()
+        return self.main_component.displayFormat()
 
     @format.setter
     def format(self, value):
-        self.MAIN_COMPONENT.setDisplayFormat(value)
+        self.main_component.setDisplayFormat(value)
 
     @property
     def value(self):
-        return self._to_datetime(self.MAIN_COMPONENT.dateTime())
+        return self._to_datetime(self.main_component.dateTime())
 
     @value.setter
     def value(self, value):
-        self.MAIN_COMPONENT.setDateTime(self._to_datetime(value))
+        self.main_component.setDateTime(self._to_datetime(value))
 
     def has_data(self):
         return True
@@ -602,9 +668,8 @@ class SelectField(BaseField):
 
     def __init__(self, *args, choices=(), blank=False, blank_text='',
                  get_text=None, get_value=None, **kwargs):
-        self.MAIN_COMPONENT = Qt.QComboBox()
-        self.MAIN_COMPONENT.setEditable(False)
-        self.CHANGE_SIGNAL = self.MAIN_COMPONENT.currentIndexChanged
+        self._combo = Qt.QComboBox()
+        self._combo.setEditable(False)
 
         self._text_getter = self._create_text_getter(get_text)
         self._value_getter = self._create_value_getter(get_value)
@@ -627,6 +692,14 @@ class SelectField(BaseField):
         super(SelectField, self).__init__(*args, **kwargs)
 
     @property
+    def main_component(self):
+        return self._combo
+
+    @property
+    def change_signal(self):
+        return self.main_component.currentIndexChanged
+
+    @property
     def value(self):
         """The selected option.
 
@@ -637,7 +710,7 @@ class SelectField(BaseField):
         :return: a :class:`tuple` like ``(option's text, option's value)``
         :rtype: :class:`tuple`
         """
-        component = self.MAIN_COMPONENT
+        component = self.main_component
         index = component.currentIndex()
         return component.currentText(), component.itemData(index)
 
@@ -648,14 +721,14 @@ class SelectField(BaseField):
         else:
             text, _ = new
 
-        index = self.MAIN_COMPONENT.findText(text)
+        index = self.main_component.findText(text)
 
         if index < 0 and self.choices:
             raise ValueError('No choice with text {}'.format(text))
-        self.MAIN_COMPONENT.setCurrentIndex(index)
+        self.main_component.setCurrentIndex(index)
 
     def has_data(self):
-        return self.MAIN_COMPONENT.currentIndex() >= 0
+        return self.main_component.currentIndex() >= 0
 
     def add_choice(self, text, value):
         """Adds a new choice to the options list.
@@ -667,11 +740,11 @@ class SelectField(BaseField):
         :type value: any
         """
         self.choices.append((text, value))
-        self.MAIN_COMPONENT.addItem(text, value)
+        self.main_component.addItem(text, value)
 
     def clear(self):
         """Removes all options except the blank one if present"""
-        self.MAIN_COMPONENT.clear()
+        self.main_component.clear()
         self.choices.clear()
 
         if self._blank_present:
@@ -745,16 +818,16 @@ class FileField(BaseField):
                  button_text='Browse', **kwargs):
         # text field to show selected file(s) path(s)
         self._string = StringField()
+        self._string.text = ''
+
         self._file_chooser = Qt.QFileDialog()
 
         self._browse = Qt.QPushButton('')
         self._browse.clicked.connect(self._file_chooser.exec)
 
-        self.MAIN_COMPONENT = Qt.QHBoxLayout()
-        self.MAIN_COMPONENT.addWidget(self._string, stretch=1)
-        self.MAIN_COMPONENT.addWidget(self._browse)
-
-        self.CHANGE_SIGNAL = self._string.CHANGE_SIGNAL
+        self._layout = Qt.QHBoxLayout()
+        self._layout.addWidget(self._string, stretch=1)
+        self._layout.addWidget(self._browse)
 
         kwargs.setdefault('default', [])
         super(FileField, self).__init__(*args, **kwargs)
@@ -780,6 +853,14 @@ class FileField(BaseField):
 
         self._multi_select = None
         self.multi_select = multi_select
+
+    @property
+    def main_component(self):
+        return self._layout
+
+    @property
+    def change_signal(self):
+        return self._string.change_signal
 
     @property
     def value(self):
@@ -829,9 +910,9 @@ class FileField(BaseField):
     def multi_select(self, value):
         self._multi_select = value
         if value:
-            self._qwidget.setFileMode(Qt.QFileDialog.ExistingFiles)
+            self._file_chooser.setFileMode(Qt.QFileDialog.ExistingFiles)
         else:
-            self._qwidget.setFileMode(Qt.QFileDialog.ExistingFile)
+            self._file_chooser.setFileMode(Qt.QFileDialog.ExistingFile)
 
     def add_filter(self, name, patterns):
         """Adds a named filter to this field. Filters do not apply to manually
@@ -880,6 +961,8 @@ class DirField(BaseField):
                  button_text='Browse', **kwargs):
         # text widget to show selected dir path
         self._string = StringField()
+        self._string.text = ''
+
         self._dir_chooser = Qt.QFileDialog()
         self._dir_chooser.setFileMode(Qt.QFileDialog.Directory)
         self._dir_chooser.setOption(Qt.QFileDialog.ShowDirsOnly, True)
@@ -887,17 +970,15 @@ class DirField(BaseField):
         self._browse = Qt.QPushButton()
         self._browse.clicked.connect(self._dir_chooser.exec)
 
-        self.MAIN_COMPONENT = Qt.QHBoxLayout()
-        self.MAIN_COMPONENT.addWidget(self._string, stretch=1)
-        self.MAIN_COMPONENT.addWidget(self._browse)
-
-        self.CHANGE_SIGNAL = self._string.CHANGE_SIGNAL
+        self._layout = Qt.QHBoxLayout()
+        self._layout.addWidget(self._string, stretch=1)
+        self._layout.addWidget(self._browse)
 
         kwargs.setdefault('default', '')
         super(DirField, self).__init__(*args, **kwargs)
 
         def _close_cb():
-            path = self._dir_chooser.directory()
+            path = self._dir_chooser.directory().absolutePath()
 
             if len(path) > self._string.max_length:
                 self._string.max_length = len(path)
@@ -913,6 +994,14 @@ class DirField(BaseField):
 
         self.chooser_title = chooser_title
         self.button_text = button_text
+
+    @property
+    def main_component(self):
+        return self._layout
+
+    @property
+    def change_signal(self):
+        return self._string.change_signal
 
     @property
     def value(self):

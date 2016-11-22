@@ -19,9 +19,8 @@ class Field(Qt.QWidget):
     validation, see :class:`~campos.enums.Validation` enum for possible
     validation mechanisms.
 
-    Subclasses must implement :func:`has_data` method and define a CHANGE_SIGNAL
-    attribute referencing a valid Qt signal which is fired whenever the field's
-    value changes.
+    Subclasses must implement :func:`has_data` method and :attr:`change_signal`
+    property.
 
     :param name: text to identify the field inside forms or other contexts,
                  must be a valid variable name, it defaults to
@@ -191,9 +190,9 @@ class Field(Qt.QWidget):
 
         if self._validation != previous:
             if self._validation == Validation.INSTANT:
-                self._get_change_signal().connect(self._validation_cb)
+                self.change_signal.connect(self._validation_cb)
             elif previous is not None:
-                self._get_change_signal().disconnect(self._validation_cb)
+                self.change_signal.disconnect(self._validation_cb)
 
     @property
     def labelling(self):
@@ -223,14 +222,12 @@ class Field(Qt.QWidget):
 
     @on_change.setter
     def on_change(self, callback):
-        signal = self._get_change_signal()
-
         if self._on_change is not None:  # disconnect the previous handler
-            signal.disconnect(self._on_change)
+            self.change_signal.disconnect(self._on_change)
             self._on_change = None
 
         if callable(callback):
-            signal.connect(callback)
+            self.change_signal.connect(callback)
             self._on_change = callback
         elif callback is not None:
             msg = 'Expecting callable, got {}'.format(type(callback))
@@ -250,6 +247,15 @@ class Field(Qt.QWidget):
 
         :returns: True only if the field contains any data
         :rtype: :class:`bool`
+        """
+        raise NotImplementedError
+
+    @property
+    def change_signal(self):
+        """Returns a valid Qt signal which is fired whenever the field's
+        value changes
+
+        :rtype: callable
         """
         raise NotImplementedError
 
@@ -274,17 +280,6 @@ class Field(Qt.QWidget):
                     self.errors.append(e)
             self.valid = len(self.errors) == 0
 
-    def _get_change_signal(self):
-        msg = "'CHANGE_SIGNAL' attribute must be defined and reference a " \
-              "valid Qt's signal"
-        try:
-            if not callable(self.CHANGE_SIGNAL):
-                raise ValueError(msg)
-        except AttributeError:
-            raise AttributeError(msg)
-        else:
-            return self.CHANGE_SIGNAL
-
     def _validation_cb(self):
         if self.validation == Validation.INSTANT:
             self.validate()
@@ -299,9 +294,7 @@ class BaseField(Field):
     errors.
 
     In order to create new fields following this structure is only necessary to
-    implement :attr:`value` property getter and setter and define a
-    MAIN_COMPONENT attribute which is a valid QWidget or QLayout holding the
-    main part of the field(without text and error labels).
+    implement :attr:`value` and :attr:`main_component` properties.
 
     :class:`Field` should be used as base class to create fields without
     this structure.
@@ -311,9 +304,18 @@ class BaseField(Field):
         self.label = Qt.QLabel('')
         self.error_label = Qt.QLabel('')
         self.error_label.setStyleSheet('color: rgb(255, 0, 0);')
-        self.layout = None
+        self.field_layout = None
 
         super(BaseField, self).__init__(*args, **kwargs)
+
+    @property
+    def main_component(self):
+        """Returns a valid QWidget or QLayout holding the main part of the
+        field(without text and error labels)
+
+        :rtype: QWidget or QLayout
+        """
+        raise NotImplementedError
 
     @property
     def text(self):
@@ -325,26 +327,24 @@ class BaseField(Field):
 
     @property
     def description(self):
-        main = self._get_main_component()
-        if isinstance(main, Qt.QWidget):
-            return main.toolTip()
+        if isinstance(self.main_component, Qt.QWidget):
+            return self.main_component.toolTip()
 
         # it's a layout
-        for i in range(main.count()):
-            item = main.itemAt(i)
+        for i in range(self.main_component.count()):
+            item = self.main_component.itemAt(i)
             if isinstance(item, Qt.QWidget) and item.toolTip():
                 return item.toolTip()
         return ''
 
     @description.setter
     def description(self, value):
-        main = self._get_main_component()
-        if isinstance(main, Qt.QWidget):
-            main.setToolTip(value)
+        if isinstance(self.main_component, Qt.QWidget):
+            self.main_component.setToolTip(value)
         else:
             # it's a layout
-            for i in range(main.count()):
-                item = main.itemAt(i)
+            for i in range(self.main_component.count()):
+                item = self.main_component.itemAt(i)
                 if isinstance(item, Qt.QWidget) and not item.toolTip():
                     item.setToolTip(value)
 
@@ -372,34 +372,35 @@ class BaseField(Field):
 
             # if it was a previous layout then remove it's children and add them
             # to the new layout
-            if self.labelling:
-                # set new layout and re-parent existing one
-                current = self.layout()
-                self.setLayout(layout)
+            if self.field_layout is not None:
+                self.field_layout.removeWidget(self.label)
+                self.field_layout.removeWidget(self.error_label)
 
-                for i in range(current.count()):
-                    item = current.itemAt(i)
-                    if isinstance(item, Qt.QLayout):
-                        current.removeItem(item)
-                        layout.addLayout(item)
-                    else:
-                        current.removeWidget(item)
-                        layout.addWidget(item)
-            else:
-                # setting layout and adding children for first time
-                layout.addWidget(self.label)
-
-                main = self._get_main_component()
-                if isinstance(main, Qt.QLayout):
-                    layout.addLayout(main)
+                if isinstance(self.main_component, Qt.QWidget):
+                    self.field_layout.removeWidget(self.main_component)
                 else:
-                    layout.addWidget(main)
+                    self.field_layout.removeItem(self.main_component)
 
-                layout.addWidget(self.error_label)
-                self.setLayout(layout)
+                # re-parent existing layout
+                Qt.QWidget().setLayout(self.field_layout)
+
+            # add children to new layout
+            layout.addWidget(self.label)
+
+            if isinstance(self.main_component, Qt.QWidget):
+                layout.addWidget(self.main_component)
+            else:
+                layout.addLayout(self.main_component)
+
+            layout.addWidget(self.error_label)
 
             # stretch main component
             layout.setStretch(1, 1)
+
+            # set layout
+            self.field_layout = layout
+            self.setLayout(layout)
+            self._labelling = new
 
     def validate(self):
         super(BaseField, self).validate()
@@ -409,14 +410,3 @@ class BaseField(Field):
             if not self.valid:
                 msg = self.message if self.message else str(self.errors.pop())
             self.error_label.setText(msg)
-
-    def _get_main_component(self):
-        msg = "'MAIN_COMPONENT' attribute must be defined and reference a " \
-              "valid QtWidget or QLayout"
-        try:
-            if not isinstance(self.MAIN_COMPONENT, (Qt.QWidget, Qt.QLayout)):
-                raise ValueError(msg)
-        except AttributeError:
-            raise AttributeError(msg)
-        else:
-            return self.MAIN_COMPONENT
