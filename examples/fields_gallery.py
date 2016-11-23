@@ -3,7 +3,7 @@
 import os
 
 # set gui api to use
-os.environ['QT_API'] = 'pyqt5'
+os.environ['QT_API'] = 'pyside'
 
 from qtpy import uic
 from qtpy.QtWidgets import (QApplication, QActionGroup, QMainWindow)
@@ -81,7 +81,7 @@ class FieldsGallery(QMainWindow):
             action.setCheckable(True)
             self.menuValidation.addAction(action)
 
-            if member == campos.Validation.default():
+            if member == campos.Validation.get_current():
                 action.setChecked(True)
                 action.trigger()
 
@@ -94,7 +94,7 @@ class FieldsGallery(QMainWindow):
             action.setCheckable(True)
             self.menuLabelling.addAction(action)
 
-            if member == campos.Labelling.default():
+            if member == campos.Labelling.get_current():
                 action.setChecked(True)
                 action.trigger()
 

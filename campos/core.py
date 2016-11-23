@@ -373,13 +373,9 @@ class BaseField(Field):
             # if it was a previous layout then remove it's children and add them
             # to the new layout
             if self.field_layout is not None:
-                self.field_layout.removeWidget(self.label)
-                self.field_layout.removeWidget(self.error_label)
-
-                if isinstance(self.main_component, Qt.QWidget):
-                    self.field_layout.removeWidget(self.main_component)
-                else:
-                    self.field_layout.removeItem(self.main_component)
+                self.field_layout.takeAt(2)  # error label
+                self.field_layout.takeAt(1)  # main component
+                self.field_layout.takeAt(0)  # label
 
                 # re-parent existing layout
                 Qt.QWidget().setLayout(self.field_layout)
