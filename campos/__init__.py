@@ -1,8 +1,8 @@
-from enums import ButtonType, Labelling, Validation
-from validators import RegExp
-from sources import get_fields_source
-from fields import *
-from forms import *
+from .enums import ButtonType, Labelling, Validation
+from .validators import RegExp
+from .sources import get_fields_source
+from .fields import *
+from .forms import *
 
 __author__ = 'Juan Manuel Bermúdez Cabrera'
 

@@ -3,9 +3,9 @@ import contextlib
 from qtpy.QtWidgets import (QDialog, QVBoxLayout, QDialogButtonBox, QMessageBox,
                             QGroupBox, QGridLayout, QHBoxLayout)
 
-import sources
-from enums import Validation, ButtonType
-from utils import callable
+from . import sources
+from .enums import Validation, ButtonType
+from .utils import callable
 
 __author__ = 'Juan Manuel Bermúdez Cabrera'
 
@@ -19,7 +19,7 @@ class Form(QDialog):
 
         fields = [StringField(), SelectField(), FileField(), TextField()]
         buttons = ('reset', 'ok', 'cancel')
-        form = Form(validation='instant', fields=fields, options=buttons)
+        form = Form(fields=fields, options=buttons)
 
     Or also by calling :func:`from_source` which generates form's fields
     introspecting a source object::
@@ -49,7 +49,7 @@ class Form(QDialog):
     called automatically when validation is set to 'instant'.
 
     More specialized forms can be created using :class:`CreationForm` and
-    :class:`EditionForm` subclasses which provide useful default behaviour
+    :class:`EditionForm` subclasses which provide some useful default behaviour
     for object creation and modification.
 
     :param validation: validation mechanism used by the form, if it's 'instant'
@@ -73,8 +73,8 @@ class Form(QDialog):
                     For instance, if your options are ``['save', 'cancel']``
                     you can pass two keyword arguments named ``on_save`` and
                     ``on_cancel`` which will be connected to save and cancel
-                    buttons. Note that the keyword(except the on_ part) matches
-                    the option name(``ButtonType`` member's name).
+                    buttons. Note that the keyword(except the ``on_`` part)
+                    matches the option name(``ButtonType`` member's name).
 
     :type options: iterable of :class:`str`, :class:`~campos.enums.ButtonType`
                    or ``QPushButton``
@@ -453,9 +453,8 @@ class EditionForm(Form):
         """Puts the form in edition mode, filling fields with object values.
 
         To prevent some of the fields from been modified when editing use
-        disable keyword and provide the names of the fields. For manually
-        created forms, field names must match object attributes in order to
-        load values correctly.
+        disable keyword and provide the names of the fields. Field names must
+        match object attributes in order to load values correctly.
 
         :param obj: object used to fill form fields, only those attributes which
                     match field names will be used.

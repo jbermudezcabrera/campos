@@ -2,7 +2,7 @@ import abc
 
 from qtpy.QtWidgets import QDialogButtonBox
 
-from utils import Enum
+from .utils import Enum
 
 __author__ = 'Juan Manuel Bermúdez Cabrera'
 
@@ -169,21 +169,56 @@ class ButtonType(BaseEnum):
     StandardButtons enum
     """
 
+    #: QDialogButtonBox.Ok
     OK = QDialogButtonBox.Ok
+
+    #: QDialogButtonBox.Open
     OPEN = QDialogButtonBox.Open
+
+    #: QDialogButtonBox.Save
     SAVE = QDialogButtonBox.Save
+
+    #: QDialogButtonBox.Cancel
     CANCEL = QDialogButtonBox.Cancel
+
+    #: QDialogButtonBox.Close
     CLOSE = QDialogButtonBox.Close
+
+    #: QDialogButtonBox.Discard
     DISCARD = QDialogButtonBox.Discard
+
+    #: QDialogButtonBox.Apply
     APPLY = QDialogButtonBox.Apply
+
+    #: QDialogButtonBox.Reset
     RESET = QDialogButtonBox.Reset
+
+    #: QDialogButtonBox.RestoreDefaults
     RESTORE_DEFAULTS = QDialogButtonBox.RestoreDefaults
+
+    #: QDialogButtonBox.Help
     HELP = QDialogButtonBox.Help
+
+    #: QDialogButtonBox.SaveAll
     SAVE_ALL = QDialogButtonBox.SaveAll
+
+    #: QDialogButtonBox.Yes
     YES = QDialogButtonBox.Yes
+
+    # QDialogButtonBox.YesToAll
     YES_TO_ALL = QDialogButtonBox.YesToAll
+
+    #: QDialogButtonBox.No
     NO = QDialogButtonBox.No
+
+    #: QDialogButtonBox.NoToAll
     NO_TO_ALL = QDialogButtonBox.NoToAll
+
+    #: QDialogButtonBox.Abort
     ABORT = QDialogButtonBox.Abort
+
+    #: QDialogButtonBox.Retry
     RETRY = QDialogButtonBox.Retry
+
+    #: QDialogButtonBox.Ignore
     IGNORE = QDialogButtonBox.Ignore

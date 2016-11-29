@@ -2,9 +2,9 @@ import re
 
 from qtpy import QtWidgets as Qt
 
-from enums import Validation, Labelling
-from utils import callable, first_of_type
-from validators import DataRequired
+from .enums import Validation, Labelling
+from .utils import callable, first_of_type
+from .validators import DataRequired
 
 __author__ = 'Juan Manuel Bermúdez Cabrera'
 
@@ -24,22 +24,22 @@ class Field(Qt.QWidget):
 
     :param name: text to identify the field inside forms or other contexts,
                  must be a valid variable name, it defaults to
-                 field{consecutive_number}
+                 ``field{consecutive_number}``
     :type name: :class:`str`
 
-    :param text: text to show in the field's label, it defaults to ``name``
+    :param text: text to show in field's label, it defaults to ``name``
     :type text: :class:`str`
 
     :param description: useful short information about the field, usually shown
                         as a tooltip
     :type description: :class:`str`
 
-    :param default: default value when the field is shown by first time
+    :param default: default value when field is shown by first time
 
     :param on_change: handler to call when field's value changes, this is a
                       shortcut and it only supports one handler at a time,
                       if you want to connect multiple handlers you should use
-                      ``field.CHANGE_SIGNAL.connect(handler)`` for each handler
+                      ``field.change_signal.connect(handler)`` for each handler
     :type on_change: callable
 
     :param labelling: field's label position, see
@@ -52,7 +52,7 @@ class Field(Qt.QWidget):
                        defaults to 'current'
     :type validation: :class:`str` or :class:`~campos.enums.Validation`
 
-    :param validators: validators used to process this field's value when
+    :param validators: validators used to process field's value when
                        validation is invoked
     :type validators: iterable of :class:`~campos.validators.Validator`
 
@@ -113,7 +113,8 @@ class Field(Qt.QWidget):
     @property
     def name(self):
         """Text to identify the field inside forms or other contexts,
-        must be a valid variable name, it defaults to field{consecutive_number}
+        must be a valid variable name, it defaults to
+        ``field{consecutive_number}``
 
         :type: :class:`str`
 
@@ -211,7 +212,7 @@ class Field(Qt.QWidget):
     def on_change(self):
         """Handler to call when field's value changes, this is a shortcut and
         it only supports one handler at a time, if you want to connect multiple
-        handlers you should use ``field.CHANGE_SIGNAL.connect(handler)``
+        handlers you should use ``field.change_signal.connect(handler)``
         for each handler.
 
         To disconnect a connected handler just set ``on_change = None``
@@ -286,8 +287,8 @@ class Field(Qt.QWidget):
 
 
 class BaseField(Field):
-    """More complete abstract base class for fields, implementing a common use
-    case scenario.
+    """More complete base class for fields, implementing a common use case
+    scenario.
 
     This class assumes that a field is composed by a label, a central component
     (usually where the value is entered) and other label used to show validation

@@ -3,7 +3,7 @@ from collections import OrderedDict
 
 from . import (FieldSource, from_bool, from_int, from_float, from_str,
                from_date, from_time, from_datetime)
-from campos.fields import SelectField
+from ..fields import SelectField
 
 __author__ = 'Juan Manuel Bermúdez Cabrera'
 

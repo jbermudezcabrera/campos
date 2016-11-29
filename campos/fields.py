@@ -5,10 +5,10 @@ from datetime import date, time, datetime
 import qtpy.QtWidgets as Qt
 from qtpy.QtCore import QDate, QTime, QDateTime
 
-from core import BaseField
-from utils import first_of_type, callable
-from validators import (NumberRange, StringLength, DateRange, TimeRange,
-                        DatetimeRange)
+from .core import BaseField
+from .utils import first_of_type, callable
+from .validators import (NumberRange, StringLength, DateRange, TimeRange,
+                         DatetimeRange)
 
 __author__ = 'Juan Manuel Bermúdez Cabrera'
 

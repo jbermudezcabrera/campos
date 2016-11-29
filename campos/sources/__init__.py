@@ -4,10 +4,10 @@ import inspect
 import datetime as dt
 from collections import OrderedDict
 
-from campos import fields
-from campos.utils import callable
-from campos.validators import (NumberRange, StringLength, DateRange, TimeRange,
-                               DatetimeRange)
+from .. import fields
+from ..utils import callable
+from ..validators import (NumberRange, StringLength, DateRange, TimeRange,
+                          DatetimeRange)
 
 __author__ = 'Juan Manuel Bermúdez Cabrera'
 
@@ -32,7 +32,7 @@ class FieldSource(metaclass=abc.ABCMeta):
       object.
 
     * Attribute names are filtered using expressions in ``exclude`` and values
-      of ``under``(beginning with exactly one _) and ``dunder`` (beginning with
+      of ``under`` (beginning with exactly one _) and ``dunder`` (beginning with
       two or more _).
 
     * A transformation function(if provided through ``apply`` keyword) is used
