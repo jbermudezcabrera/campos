@@ -9,6 +9,7 @@ Welcome to |name|
 ====================
 
 |name| helps you to quickly create or generate fully functional forms.
+Read a bit more about it or jump to `User's Guide`_
 
 Main features
 -------------
