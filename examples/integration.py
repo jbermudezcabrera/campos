@@ -41,7 +41,8 @@ def create_forms(person):
     """Creates and return two forms, one for create and the other for edit
     Person objects.
     """
-    creation, edition = campos.get_forms(person, exclude=['country'])
+    creation, edition = campos.get_forms(person,
+                                         source_kw={'exclude': ['country']})
 
     id = creation.field('id')
     id.text = 'Personal ID'

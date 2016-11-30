@@ -25,8 +25,15 @@ def fake_create_person(form):
 
 
 def create_form(person):
-    form = campos.CreationForm.from_source(person, exclude=['country'])
+    country = campos.SelectField(name='country', text='Country', blank=True,
+                                 blank_text='Other', choices=['Cuba', 'EE.UU'],
+                                 default='Cuba')
+
+    form = campos.CreationForm.from_source(person,
+                                           source_kw={'exclude': ['country']},
+                                           form_kw={'fields': [country]})
     form.button('save').clicked.connect(partial(fake_create_person, form))
+    form.button('cancel').clicked.connect(form.close)
 
     id = form.field('id')
     id.text = 'Personal ID'
@@ -43,14 +50,10 @@ def create_form(person):
 
     form.field('address').text = 'Home address'
 
-    country = campos.SelectField(name='country', text='Country', blank=True,
-                                 blank_text='Other', choices=['Cuba', 'EE.UU'],
-                                 default='Cuba')
-    form.add_field(country)
-
     # group some fields
     form.group('Very personal info', ('phone', 'address'), layout='grid')
     form.group('Identification', ['id', 'name', 'last_name'])
+    form.validate()
     return form
 
 

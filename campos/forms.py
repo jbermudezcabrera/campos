@@ -126,23 +126,30 @@ class Form(QDialog):
                 btn.setEnabled(enabled)
 
     @staticmethod
-    def from_source(obj, **source_kw):
+    def from_source(obj, source_kw={}, form_kw={}):
         """Creates a form introspecting fields from an object.
 
         Fields are generated using a suited :class:`~campos.sources.FieldSource`
-        instance, see ``campos.sources`` package for available options.
+        instance.
 
         :param obj: object to extract fields from.
         :type obj: any
 
         :param source_kw: keyword arguments to pass to
                           :class:`~campos.sources.FieldSource` constructor
-        """
-        title = type(obj).__name__.capitalize()
-        source = sources.get_fields_source(obj, **source_kw)
-        fields = source.fields.values()
+        :type source_kw: :class:`dict`
 
-        form = Form(fields=fields)
+        :param form_kw: keyword arguments to pass to :class:`Form` constructor
+        :type form_kw: :class:`dict`
+        """
+        source = sources.get_fields_source(obj, **source_kw)
+
+        fields = form_kw.pop('fields', [])
+        fields.extend(source.fields.values())
+
+        form = Form(fields=fields, **form_kw)
+
+        title = type(obj).__name__.capitalize()
         form.setWindowTitle(title)
         return form
 
@@ -382,10 +389,17 @@ class CreationForm(Form):
             field.value = field.default
 
     @staticmethod
-    def from_source(obj, **source_kw):
+    def from_source(obj, source_kw={}, form_kw={}):
         source = sources.get_fields_source(obj, **source_kw)
 
-        form = CreationForm(fields=source.fields.values())
+        fields = form_kw.pop('fields', [])
+        fields.extend(source.fields.values())
+
+        form_kw = form_kw.copy()
+        form_kw.setdefault('options', ('reset', 'save', 'cancel'))
+
+        form = CreationForm(fields=fields, **form_kw)
+
         title = 'Create {}'.format(type(obj).__name__.capitalize())
         form.setWindowTitle(title)
 
@@ -440,10 +454,17 @@ class EditionForm(Form):
             field.value = field.default
 
     @staticmethod
-    def from_source(obj, **source_kw):
+    def from_source(obj, source_kw={}, form_kw={}):
         source = sources.get_fields_source(obj, **source_kw)
 
-        form = EditionForm(fields=source.fields.values())
+        fields = form_kw.pop('fields', [])
+        fields.extend(source.fields.values())
+
+        form_kw = form_kw.copy()
+        form_kw.setdefault('options', ('reset', 'save', 'cancel'))
+
+        form = EditionForm(fields=fields, **form_kw)
+
         title = 'Edit {}'.format(type(obj).__name__.capitalize())
         form.setWindowTitle(title)
 
