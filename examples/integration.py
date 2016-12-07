@@ -86,12 +86,19 @@ def create_forms(person):
     # group some fields and connect callbacks
     creation.group('Very personal info', ('phone', 'address'), layout='grid')
     creation.group('Identification', ['id', 'name', 'last_name'])
-    creation.button('cancel').clicked.connect(partial(cancel, creation))
+
+    button = creation.button('cancel')
+    button.clicked.disconnect(creation.close)
+    button.clicked.connect(partial(cancel, creation))
 
     edition.group('Very personal info', ('phone', 'address'), layout='grid')
     edition.group('Identification', ['id', 'name', 'last_name'])
-    edition.button('cancel').clicked.connect(partial(cancel, edition))
+
+    button = edition.button('cancel')
+    button.clicked.disconnect(edition.close)
+    button.clicked.connect(partial(cancel, edition))
     edition.button('save').clicked.connect(partial(save, edition))
+
     return creation, edition
 
 

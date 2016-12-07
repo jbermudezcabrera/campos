@@ -66,7 +66,7 @@ class Form(QDialog):
                     instances or :class:`~campos.enums.ButtonType` enum members
                     (note that you can use strings too).
 
-                    If you use ``ButtonType`` members(or string) the you can
+                    If you use ``ButtonType`` members(or string) then you can
                     connect the button with a callback passed as a keyword
                     argument.
 
@@ -75,6 +75,10 @@ class Form(QDialog):
                     ``on_cancel`` which will be connected to save and cancel
                     buttons. Note that the keyword(except the ``on_`` part)
                     matches the option name(``ButtonType`` member's name).
+
+                    Buttons with a rejection role(accept, cancel, etc) will be
+                    connected to form's ``close()`` method if no callback is
+                    settled for them.
 
     :type options: iterable of :class:`str`, :class:`~campos.enums.ButtonType`
                    or ``QPushButton``
@@ -189,6 +193,9 @@ class Form(QDialog):
         """Adds a new button or option to form's button box and connects it
         with a callback. The new button is always returned.
 
+        Buttons with a rejection role(accept, cancel, etc) will be connected to
+        form's ``close()`` method if no callback is settled for them.
+
         :param btn: new option to add, can be a ``QPushButton`` instance or
                     :class:`~campos.enums.ButtonType` enum members(note that
                     you can use strings too)
@@ -208,8 +215,14 @@ class Form(QDialog):
             self.button_box.addButton(btn, QDialogButtonBox.ActionRole)
             button = btn
 
+        role = self.button_box.buttonRole(button)
+        if role in self.REJECTION_ROLES and on_click is None:
+            on_click = self.close
+
         if callable(on_click):
             button.clicked.connect(on_click)
+        elif on_click is not None:
+            raise ValueError('Expecting callable got {}'.format(type(on_click)))
         return button
 
     def button(self, which):

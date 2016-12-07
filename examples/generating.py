@@ -33,7 +33,6 @@ def create_form(person):
                                            source_kw={'exclude': ['country']},
                                            form_kw={'fields': [country]})
     form.button('save').clicked.connect(partial(fake_create_person, form))
-    form.button('cancel').clicked.connect(form.close)
 
     id = form.field('id')
     id.text = 'Personal ID'

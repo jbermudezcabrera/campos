@@ -46,7 +46,6 @@ def create_form():
 
     global form
     form = campos.CreationForm(on_save=fake_create_person, fields=fields)
-    form.button('cancel').clicked.connect(form.close)
     form.setWindowTitle('Create Person')
 
     # group some fields
