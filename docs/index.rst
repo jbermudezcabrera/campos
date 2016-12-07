@@ -26,7 +26,7 @@ Main features
     Use |name|' fields as building blocks to create your forms.
 
 - Works with major Qt bindings
-    Thanks to QtPy you just need to set ``os.environ['QT_API']``
+    Thanks to |qtpy| you just need to set ``os.environ['QT_API']``
     before you use |name| if you have a favorite Qt binding, one of the
     existing ones will be used otherwise.
 

@@ -1,1 +1,5 @@
 .. |name| replace:: **campos**
+.. |qtpy| replace:: QtPy_
+
+
+.. _QtPy: https://github.com/spyder-ide/qtpy

@@ -15,6 +15,6 @@ The development version can be downloaded from `its page at GitHub
 
 * |name| requires at least one of the supported Qt bindings.
 
-* |name| supports all major Qt bindings thanks to QtPy, so you need it.
+* |name| supports all major Qt bindings thanks to |qtpy|, so you need it.
 
 * |name| requires Python version >= 3.0
