@@ -14,7 +14,7 @@ setup(
     license='MIT',
 
     description=description,
-    long_description=open('README.txt').read(),
+    long_description=open('README.rst').read(),
 
     author=__author__,
     author_email='jbermudezcabrera@gmail.com',
