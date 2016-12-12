@@ -6,6 +6,8 @@ from .forms import *
 
 __author__ = 'Juan Manuel Bermúdez Cabrera'
 
+__version__ = '1.0.1'
+
 
 def get_forms(obj, source_kw={}, form_kw={}):
     """Creates ready to use New and Edit forms using `obj` as fields source.
