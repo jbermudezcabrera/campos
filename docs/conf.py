@@ -64,7 +64,8 @@ copyright = '{}, {}'.format(date.today().year, author)
 # built documents.
 #
 
-longv = __import__('campos').__version__
+version_path = os.path.abspath(os.path.join(root, 'VERSION'))
+longv = open(version_path).read().strip()
 
 # The short X.Y version.
 version = longv.rsplit('.', 1)[0]

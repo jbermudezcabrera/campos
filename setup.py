@@ -6,7 +6,7 @@ description = 'Helps you to quickly create and generate fully functional forms'
 
 setup(
     name='campos',
-    version=__import__('campos').__version__,
+    version=open('VERSION').read().strip(),
     packages=find_packages(),
 
     url='https://github.com/jbermudezcabrera/campos',
