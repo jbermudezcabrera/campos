@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 __author__ = 'Juan Manuel Bermúdez Cabrera'
 
@@ -6,8 +6,8 @@ description = 'Helps you to quickly create and generate fully functional forms'
 
 setup(
     name='campos',
-    version='1.0.0',
-    packages=['campos', 'campos.sources'],
+    version='1.0.1',
+    packages=find_packages(),
 
     url='https://github.com/jbermudezcabrera/campos',
     download_url='http://pypi.python.org/pypi/campos',
