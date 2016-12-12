@@ -1,10 +1,5 @@
 """Shows all field types and settings available"""
 
-import os
-
-# set gui api to use
-os.environ['QT_API'] = 'pyside'
-
 from qtpy import uic
 from qtpy.QtWidgets import (QApplication, QActionGroup, QMainWindow)
 
