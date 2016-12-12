@@ -4,3 +4,4 @@ include README.rst
 include VERSION
 recursive-include examples *.*
 recursive-include docs *.*
+prune docs/_build
