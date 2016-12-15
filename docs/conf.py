@@ -21,10 +21,7 @@ from datetime import date
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 root = os.path.abspath('..')
-api_doc = os.path.abspath(os.path.join(root, 'docs', 'api'))
-
 sys.path.append(root)
-sys.path.append(api_doc)
 
 # -- General configuration ------------------------------------------------
 
@@ -121,7 +118,13 @@ todo_include_todos = False
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'alabaster'
+
+in_rtd = os.environ.get('READTHEDOCS') == 'True'
+
+if in_rtd:
+    html_theme = 'default'
+else:
+    html_theme = 'alabaster'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
