@@ -17,6 +17,23 @@ import sys
 import os
 from datetime import date
 
+try:
+    from unittest.mock import MagicMock
+except ImportError:
+    from mock import Mock as MagicMock
+
+
+class Mock(MagicMock):
+    @classmethod
+    def __getattr__(cls, name):
+        return MagicMock()
+
+# since RTD doesn't support installing C extensions is necessary to mock a
+# Qt binding inside RTD environment
+MOCK_MODULES = ['PySide']
+sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
@@ -119,9 +136,9 @@ todo_include_todos = False
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 
-in_rtd = os.environ.get('READTHEDOCS') == 'True'
+on_rtd = os.environ.get('READTHEDOCS') == 'True'
 
-if in_rtd:
+if on_rtd:
     html_theme = 'default'
 else:
     html_theme = 'alabaster'
@@ -216,7 +233,7 @@ html_static_path = ['_static']
 #html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'camposdoc'
+htmlhelp_basename = '{}doc'.format(project)
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -238,8 +255,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  (master_doc, 'campos.tex', 'campos Documentation',
-   'Juan Manuel Bermúdez Cabrera', 'manual'),
+  (master_doc, '{}.tex'.format(project), '{} Documentation'.format(project),
+   author, 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -268,8 +285,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'campos', 'campos Documentation',
-     [author], 1)
+    (master_doc, project, '{} Documentation'.format(project), [author], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -282,8 +298,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  (master_doc, 'campos', 'campos Documentation',
-   author, 'campos', 'One line description of project.',
+  (master_doc, project, '{} Documentation'.format(project),
+   author, project, 'One line description of project.',
    'Miscellaneous'),
 ]
 
