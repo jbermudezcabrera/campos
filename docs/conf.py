@@ -28,9 +28,9 @@ class Mock(MagicMock):
     def __getattr__(cls, name):
         return MagicMock()
 
-# since RTD doesn't support installing C extensions is necessary to mock a
-# Qt binding inside RTD environment
-MOCK_MODULES = ['PySide']
+# since RTD doesn't support installing C extensions is necessary to mock
+# QtPy to prevent imports of Qt bindings inside RTD environment
+MOCK_MODULES = ['qtpy']
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 
